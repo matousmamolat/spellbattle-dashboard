@@ -1,0 +1,275 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="20"><title>SpellBattle · Roadmap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0E0F1A;--panel:#161826;--panel-2:#1B1E30;--line:#262842;--ink:#E9E7F2;
+    --muted:#8E8CA8;--faint:#5E5C78;--fire:#FF7A3C;--nature:#57E39A;--arcane:#8A7CFF;
+    --amber:#FFC24B;--danger:#FF5D73;--display:'Space Grotesk',system-ui,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,monospace;--body:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;}
+  *{box-sizing:border-box;}
+  body{margin:0;color:var(--ink);font-family:var(--body);line-height:1.55;
+    padding:26px clamp(16px,4vw,48px) 64px;
+    background:radial-gradient(1200px 600px at 80% -10%,rgba(138,124,255,.10),transparent 60%),
+      radial-gradient(900px 500px at -5% 10%,rgba(255,122,60,.07),transparent 55%),var(--bg);}
+  a{color:var(--arcane);text-decoration:none;} a:hover{text-decoration:underline;}
+  code{font-family:var(--mono);}
+  header.hud{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-bottom:14px;}
+  .mark{font-family:var(--display);font-weight:700;font-size:1.4rem;letter-spacing:.02em;}
+  .mark .sig{color:var(--fire);}
+  .eyebrow{font-family:var(--mono);font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--faint);display:block;margin-bottom:2px;}
+  .phase{font-family:var(--display);font-weight:600;color:var(--nature);}
+  .hud-right{margin-left:auto;display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+  .chip{font-family:var(--mono);font-size:.72rem;padding:5px 10px;border-radius:999px;
+    border:1px solid var(--line);color:var(--muted);background:var(--panel);}
+  .chip-ok{color:var(--nature);border-color:rgba(87,227,154,.35);}
+  .chip-warn{color:var(--amber);border-color:rgba(255,194,75,.35);}
+  .sigil{display:inline-flex;align-items:center;gap:7px;font-family:var(--display);font-weight:700;
+    padding:6px 13px;border-radius:999px;background:rgba(255,194,75,.12);
+    border:1px solid rgba(255,194,75,.4);color:var(--amber);}
+  .sigil.zero{background:rgba(87,227,154,.10);border-color:rgba(87,227,154,.35);color:var(--nature);}
+  nav.topnav{display:flex;flex-wrap:wrap;gap:4px;border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);padding:8px 0;margin-bottom:22px;}
+  .nav-link{font-family:var(--display);font-weight:600;font-size:.84rem;color:var(--muted);
+    padding:7px 14px;border-radius:8px;letter-spacing:.01em;}
+  .nav-link:hover{color:var(--ink);background:var(--panel);text-decoration:none;}
+  .nav-link.active{color:var(--bg);background:var(--arcane);}
+  .back{display:inline-block;font-family:var(--mono);font-size:.78rem;color:var(--muted);
+    margin-bottom:16px;}
+  h1.page-title{font-family:var(--display);font-size:1.5rem;margin:0 0 18px;}
+  .grid{display:grid;grid-template-columns:1.35fr 1fr;gap:20px;align-items:start;}
+  @media(max-width:880px){.grid{grid-template-columns:1fr;}}
+  .col{display:flex;flex-direction:column;gap:20px;}
+  section.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;}
+  .panel h2{font-family:var(--display);font-size:.82rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 14px;font-weight:600;}
+  .panel.full{grid-column:1/-1;}
+  .empty{color:var(--faint);font-style:italic;margin:2px 0;}
+  /* menu cards */
+  .menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;}
+  .card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:18px;transition:border-color .15s,transform .15s;}
+  .card:hover{border-color:var(--arcane);transform:translateY(-2px);text-decoration:none;}
+  .card .c-name{font-family:var(--display);font-weight:700;font-size:1.05rem;color:var(--ink);}
+  .card .c-count{font-family:var(--mono);font-size:.78rem;color:var(--arcane);margin-top:6px;display:block;}
+  .card .c-desc{color:var(--muted);font-size:.82rem;margin-top:6px;}
+  /* review cast cards */
+  section.queue{border-color:rgba(255,194,75,.30);
+    background:linear-gradient(180deg,rgba(255,194,75,.05),var(--panel) 60%);}
+  section.queue h2{color:var(--amber);}
+  .cast-list{display:flex;flex-direction:column;gap:12px;}
+  .cast{border-left:3px solid var(--amber);background:var(--panel-2);padding:12px 16px;border-radius:0 10px 10px 0;}
+  .cast-kind{font-family:var(--mono);font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);}
+  .cast-summary{margin:4px 0 2px;font-family:var(--display);font-weight:600;font-size:1.02rem;}
+  .cast-meta{margin:0;color:var(--faint);font-size:.8rem;font-family:var(--mono);}
+  /* mana bar */
+  .focus-line{font-size:.95rem;color:var(--muted);margin:0 0 14px;} .focus-line b{color:var(--ink);}
+  .mana{display:flex;gap:3px;margin:8px 0 6px;} .seg{flex:1;height:14px;border-radius:3px;background:var(--panel-2);}
+  .seg.on{background:linear-gradient(180deg,var(--nature),#3bbf80);box-shadow:0 0 8px rgba(87,227,154,.4);}
+  .mana-label{font-family:var(--mono);font-size:.78rem;color:var(--muted);}
+  .open-items,.commits,.codex,.crew{list-style:none;padding:0;margin:0;}
+  .open-items li{padding:7px 0;border-top:1px solid var(--line);font-size:.9rem;}
+  .open-items li:first-child{border-top:0;} .open-items li::before{content:"◇";color:var(--arcane);margin-right:9px;}
+  .closed-item{color:var(--faint);} .closed-item::before{content:"✓" !important;color:var(--nature) !important;}
+  /* timeline */
+  .timeline{list-style:none;padding:0;margin:0;}
+  .ev{display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line);}
+  .ev:first-child{border-top:0;} .ev-dot{width:7px;height:7px;border-radius:50%;background:var(--arcane);transform:translateY(-1px);}
+  .ev-commit .ev-dot{background:var(--nature);} .ev-review .ev-dot{background:var(--amber);} .ev-design .ev-dot{background:var(--fire);}
+  .ev-text{font-size:.9rem;} .ev-when{font-family:var(--mono);font-size:.74rem;color:var(--faint);white-space:nowrap;}
+  .day-head{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--faint);margin:18px 0 6px;}
+  /* commits */
+  .commits li{display:grid;grid-template-columns:auto 1fr auto;gap:10px;padding:8px 0;border-top:1px solid var(--line);align-items:baseline;}
+  .commits li:first-child{border-top:0;} .commits code{color:var(--nature);font-size:.8rem;}
+  .commits span{font-size:.88rem;} .commits em{font-family:var(--mono);font-size:.72rem;color:var(--faint);font-style:normal;white-space:nowrap;}
+  /* tables */
+  table{border-collapse:collapse;width:100%;margin:14px 0;font-size:.86rem;}
+  th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top;}
+  th{background:var(--panel-2);font-family:var(--display);color:var(--ink);}
+  .status-pill{font-family:var(--mono);font-size:.72rem;padding:3px 9px;border-radius:999px;}
+  .st-done{background:rgba(87,227,154,.12);color:var(--nature);} .st-denied{background:rgba(255,93,115,.12);color:var(--danger);}
+  /* crew / gates */
+  .roles{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+  .role{font-size:.82rem;padding:6px 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);color:var(--muted);}
+  .role b{font-weight:600;margin-right:5px;} .role-you{border-color:rgba(255,122,60,.4);} .role-you b{color:var(--fire);}
+  .role-agents{border-color:rgba(87,227,154,.4);} .role-agents b{color:var(--nature);}
+  .crew li{padding:11px 0;border-top:1px solid var(--line);} .crew li:first-child{border-top:0;}
+  .agent-name{font-family:var(--mono);font-size:.86rem;color:var(--arcane);}
+  .agent-desc{display:block;font-size:.86rem;color:var(--muted);margin-top:3px;}
+  .agent-tools{display:block;font-family:var(--mono);font-size:.72rem;color:var(--faint);margin-top:4px;}
+  .gates{display:flex;flex-wrap:wrap;gap:7px;}
+  .tag{font-family:var(--mono);font-size:.72rem;padding:5px 10px;border-radius:7px;
+    background:rgba(255,194,75,.10);border:1px solid rgba(255,194,75,.3);color:var(--amber);}
+  /* research / capability doc rendering */
+  .toc{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+  .toc a{font-family:var(--mono);font-size:.78rem;padding:5px 11px;border-radius:8px;
+    background:var(--panel-2);border:1px solid var(--line);}
+  .doc{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px 22px;margin-bottom:22px;scroll-margin-top:20px;}
+  .doc h1,.doc h2,.doc h3,.doc h4{font-family:var(--display);}
+  .doc h2{font-size:1.25rem;border-bottom:1px solid var(--line);padding-bottom:8px;margin-top:24px;}
+  .doc .doc-meta{font-family:var(--mono);font-size:.74rem;color:var(--faint);}
+  .doc pre{background:#0b0c16;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto;font-size:.82rem;}
+  .doc blockquote{border-left:3px solid var(--arcane);margin:12px 0;padding:2px 16px;color:var(--muted);}
+  .doc code{background:var(--panel-2);padding:1px 6px;border-radius:5px;font-size:.85em;}
+  .doc pre code{background:none;padding:0;}
+  .rules-list{list-style:none;padding:0;margin:0;}
+  .rules-list li{padding:6px 0;font-size:.9rem;color:var(--muted);}
+  .rules-list li::before{content:"✦";color:var(--fire);margin-right:9px;opacity:.7;}
+  /* test banner */
+  .test-banner{display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,rgba(255,194,75,.16),rgba(255,122,60,.10));
+    border:1px solid rgba(255,194,75,.5);border-radius:12px;padding:14px 18px;margin-bottom:20px;color:var(--ink);}
+  .test-banner:hover{text-decoration:none;border-color:var(--amber);}
+  .tb-bell{font-size:1.3rem;}
+  .test-banner b{color:var(--amber);}
+  /* resume */
+  section.resume{background:linear-gradient(180deg,rgba(138,124,255,.08),var(--panel) 70%);border-color:rgba(138,124,255,.35);margin-bottom:22px;}
+  section.resume h2{color:var(--arcane);}
+  .resume-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+  @media(max-width:760px){.resume-grid{grid-template-columns:1fr;}}
+  .rz-label{font-family:var(--mono);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);}
+  .rz-big{font-family:var(--display);font-weight:600;font-size:1.05rem;color:var(--nature);margin:5px 0 10px;}
+  .rz-list{list-style:none;padding:0;margin:6px 0 0;} .rz-list li{padding:4px 0;font-size:.88rem;}
+  .rz-list li::before{content:"›";color:var(--arcane);margin-right:8px;}
+  .dim{color:var(--faint);} .pri-flag{color:var(--amber);font-size:.78rem;}
+  .rz-foot{margin:14px 0 0;font-family:var(--mono);font-size:.74rem;color:var(--faint);}
+  .waiting{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px;}
+  .wait-chip{font-family:var(--mono);font-size:.74rem;padding:5px 11px;border-radius:999px;border:1px solid var(--line);}
+  .wc-test{background:rgba(255,194,75,.12);border-color:rgba(255,194,75,.4);color:var(--amber);}
+  .wc-rev{background:rgba(255,122,60,.12);border-color:rgba(255,122,60,.4);color:var(--fire);}
+  .wc-q{background:rgba(138,124,255,.12);border-color:rgba(138,124,255,.4);color:var(--arcane);}
+  .wc-ok{background:rgba(87,227,154,.10);border-color:rgba(87,227,154,.35);color:var(--nature);}
+  /* questions / changes */
+  .qcard{border-left:3px solid var(--arcane);background:var(--panel-2);padding:12px 16px;border-radius:0 10px 10px 0;}
+  .q-text{margin:0 0 4px;font-family:var(--display);font-weight:600;}
+  .q-ctx{margin:0 0 4px;color:var(--muted);font-size:.86rem;}
+  .changes-list{list-style:none;padding:0;margin:0;}
+  .changes-list li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--line);font-size:.9rem;}
+  .changes-list li:first-child{border-top:0;}
+  .chg-gp .chg-text{color:var(--ink);} .gp-tag{font-family:var(--mono);font-size:.64rem;letter-spacing:.1em;
+    text-transform:uppercase;background:rgba(255,122,60,.16);color:var(--fire);padding:2px 7px;border-radius:5px;margin-left:6px;}
+  /* roadmap */
+  .track{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;margin-bottom:22px;}
+  .track-step{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;}
+  .track-step .ts-id{font-family:var(--mono);font-size:.7rem;color:var(--faint);}
+  .track-step .ts-name{display:block;font-family:var(--display);font-weight:600;margin:3px 0 8px;}
+  .track-active{border-color:var(--fire);background:linear-gradient(180deg,rgba(255,122,60,.10),var(--panel) 70%);}
+  .track-done{opacity:.72;}
+  .rm-detail{display:flex;flex-direction:column;gap:18px;}
+  .rm-phase h2{color:var(--ink);} .rm-phase-active{border-color:rgba(255,122,60,.4);}
+  .rm-phase-done{opacity:.82;}
+  .rm-ms{margin:14px 0;} .rm-ms h3{font-family:var(--display);font-size:.98rem;margin:0 0 8px;color:var(--muted);}
+  .rm-tasks{list-style:none;padding:0;margin:0;}
+  .rm-task{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;font-size:.9rem;}
+  .rm-task+.rm-task{margin-top:3px;} .rm-dot{width:8px;height:8px;border-radius:50%;background:var(--faint);flex:none;}
+  .rm-st-done .rm-dot{background:var(--nature);} .rm-st-in-progress .rm-dot{background:var(--arcane);}
+  .rm-st-blocked .rm-dot{background:var(--danger);}
+  .rm-task .rm-tname{flex:1;} .rm-st-done .rm-tname{color:var(--faint);text-decoration:line-through;}
+  .rm-pri-high{background:rgba(255,194,75,.07);} .rm-st-blocked{background:rgba(255,93,115,.08);}
+  .rm-pill{font-family:var(--mono);font-size:.66rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);}
+  .rm-done{color:var(--nature);border-color:rgba(87,227,154,.35);} .rm-in-progress{color:var(--arcane);border-color:rgba(138,124,255,.4);}
+  .rm-blocked{color:var(--danger);border-color:rgba(255,93,115,.4);} .rm-active{color:var(--fire);border-color:rgba(255,122,60,.4);}
+  footer{margin-top:30px;padding-top:16px;border-top:1px solid var(--line);font-family:var(--mono);
+    font-size:.74rem;color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  @media(prefers-reduced-motion:no-preference){.sigil:not(.zero){animation:pulse 2.4s ease-in-out infinite;}
+    @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,194,75,0);}50%{box-shadow:0 0 0 4px rgba(255,194,75,.12);}}}
+  :focus-visible{outline:2px solid var(--arcane);outline-offset:2px;}
+  /* design page */
+  .hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:22px;}
+  .hero-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;}
+  .hero-card.locked{opacity:.55;border-style:dashed;}
+  .hc-name{font-family:var(--display);font-weight:700;font-size:1.15rem;}
+  .hc-elems{display:flex;gap:6px;margin:8px 0;}
+  .hc-identity{font-size:.86rem;color:var(--muted);margin:4px 0 12px;}
+  .hc-deck-label{font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);}
+  .hc-deck-list{list-style:none;padding:0;margin:6px 0 0;display:flex;flex-wrap:wrap;gap:4px 14px;}
+  .hc-deck-list li{font-size:.84rem;display:flex;align-items:center;gap:5px;}
+  .badge{font-family:var(--mono);font-size:.64rem;padding:2px 7px;border-radius:6px;font-weight:600;white-space:nowrap;}
+  .badge-fire{background:rgba(255,122,60,.18);color:var(--fire);}
+  .badge-nature{background:rgba(87,227,154,.15);color:var(--nature);}
+  .badge-light{background:rgba(255,194,75,.15);color:var(--amber);}
+  .badge-basic{background:var(--panel-2);color:var(--muted);border:1px solid var(--line);}
+  .badge-rare{background:rgba(138,124,255,.15);color:var(--arcane);}
+  .badge-epic{background:rgba(140,80,255,.18);color:#c4b5fd;}
+  .badge-legendary{background:rgba(255,194,75,.18);color:var(--amber);}
+  .badge-offense{background:rgba(255,93,115,.12);color:var(--danger);}
+  .badge-defense{background:rgba(87,227,154,.12);color:var(--nature);}
+  .badge-support{background:rgba(138,124,255,.12);color:var(--arcane);}
+  .badge-unlocked{background:rgba(87,227,154,.12);color:var(--nature);}
+  .spell-section-head{font-family:var(--display);font-size:.82rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin:22px 0 10px;}
+  .spell-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-bottom:8px;}
+  .spell-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
+  .sc-header{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:5px;}
+  .sc-name{font-family:var(--display);font-weight:700;font-size:1.0rem;}
+  .sc-badges{display:flex;gap:4px;flex-wrap:wrap;}
+  .sc-id{font-family:var(--mono);font-size:.62rem;color:var(--faint);margin:0 0 5px;}
+  .sc-desc{font-size:.82rem;color:var(--muted);margin:0 0 7px;font-style:italic;}
+  .sc-stats{display:flex;flex-wrap:wrap;gap:5px 14px;margin:7px 0;font-size:.82rem;color:var(--muted);}
+  .sc-stats b{color:var(--ink);}
+  .mult-table{border-collapse:collapse;width:100%;margin:8px 0 0;font-size:.74rem;}
+  .mult-table th,.mult-table td{border:1px solid var(--line);padding:3px 5px;text-align:center;font-family:var(--mono);}
+  .mult-table th{background:var(--panel-2);font-size:.68rem;color:var(--muted);}
+  .mult-table td:first-child{font-size:.66rem;color:var(--muted);text-align:left;white-space:nowrap;padding-left:7px;}
+  .mult-table tr.row-total td{background:rgba(255,122,60,.06);}
+  .mult-table tr.row-hit-dot td{background:rgba(255,93,115,.07);}
+  .dot-banner{font-size:.78rem;margin:6px 0;padding:6px 10px;border-radius:7px;
+    background:rgba(255,93,115,.10);border:1px solid rgba(255,93,115,.25);color:var(--danger);}
+  .channel-banner{font-size:.78rem;margin:6px 0;padding:6px 10px;border-radius:7px;
+    background:rgba(138,124,255,.10);border:1px solid rgba(138,124,255,.30);color:#c4b5fd;}
+  .channel-table{border-collapse:collapse;width:100%;margin:8px 0 0;font-size:.8rem;}
+  .channel-table td{border:1px solid var(--line);padding:5px 9px;font-family:var(--mono);}
+  .channel-table td:first-child{color:var(--muted);font-size:.74rem;}
+  .spell-db-section{font-family:var(--display);font-size:.82rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin:22px 0 10px;}
+  .spell-db-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-bottom:18px;}
+  .spell-db-table th{background:var(--panel-2);font-family:var(--display);font-size:.74rem;padding:7px 10px;border:1px solid var(--line);}
+  .spell-db-table td{border:1px solid var(--line);padding:6px 10px;vertical-align:top;}
+  .spell-db-table tr:hover td{background:rgba(255,255,255,.02);}
+  .sdt-name{font-family:var(--display);font-weight:600;}
+  .sdt-flags{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px;}
+  .sdt-flag{font-family:var(--mono);font-size:.62rem;padding:2px 6px;border-radius:5px;}
+  .sdt-flag-channel{background:rgba(138,124,255,.15);color:#c4b5fd;}
+  .sdt-flag-shield{background:rgba(255,194,75,.12);color:var(--amber);}
+  .sdt-flag-interrupt{background:rgba(255,93,115,.12);color:var(--danger);}
+  .sdt-flag-dot{background:rgba(255,93,115,.12);color:var(--danger);}
+  .formula-box{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+    padding:10px 14px;font-family:var(--mono);font-size:.84rem;margin:8px 0;}
+  /* SSH import page */
+  .ssh-meta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
+  .ssh-chip{font-family:var(--mono);font-size:.78rem;padding:6px 13px;border-radius:999px;
+    background:rgba(138,124,255,.12);border:1px solid rgba(138,124,255,.35);color:#c4b5fd;}
+  .ssh-chip b{color:var(--ink);}
+  .ssh-never{background:rgba(255,194,75,.10);border-color:rgba(255,194,75,.35);color:var(--amber);}
+  .ssh-section{font-family:var(--display);font-size:.82rem;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--muted);border-top:1px solid var(--line);
+    padding-top:14px;margin:26px 0 10px;}
+  .ssh-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-bottom:18px;}
+  .ssh-table th{background:var(--panel-2);font-family:var(--display);font-size:.74rem;
+    padding:7px 10px;border:1px solid var(--line);white-space:nowrap;}
+  .ssh-table td{border:1px solid var(--line);padding:6px 10px;vertical-align:top;}
+  .ssh-table tr:hover td{background:rgba(255,255,255,.02);}
+  .ssh-name{font-family:var(--display);font-weight:600;}
+  .ssh-note{font-size:.72rem;color:var(--amber);font-family:var(--mono);}
+  .ssh-notes-list{list-style:none;padding:0;margin:0;}
+  .ssh-notes-list li{padding:5px 0;border-top:1px solid var(--line);font-size:.86rem;color:var(--muted);}
+  .ssh-notes-list li:first-child{border-top:0;}
+  .ssh-notes-list li::before{content:"⚑";color:var(--amber);margin-right:8px;}
+  .ssh-assets-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+  .ssh-asset-tag{font-family:var(--mono);font-size:.64rem;padding:3px 8px;border-radius:6px;
+    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);}
+</style></head><body>
+<header class="hud">
+  <div><span class="eyebrow">Real-time 1v1 spell battler · Unity 6</span>
+    <span class="mark"><span class="sig">◈</span> SPELLBATTLE</span></div>
+  <div><span class="eyebrow">Current phase</span><span class="phase">Foundations complete</span></div>
+  <div class="hud-right"><span class="chip">⌥ master</span><span class="chip chip-warn">184 uncommitted</span>
+    <span class="sigil zero">✓ all clear</span></div>
+</header>
+<nav class="topnav"><a class="nav-link" href="index.html">Overview</a><a class="nav-link active" href="roadmap.html">Roadmap</a><a class="nav-link" href="inbox.html">Inbox</a><a class="nav-link" href="research.html">Research</a><a class="nav-link" href="activity.html">Activity</a><a class="nav-link" href="system.html">System</a><a class="nav-link" href="commits.html">Commits</a><a class="nav-link" href="design.html">Design</a><a class="nav-link" href="spells.html">Spells</a><a class="nav-link" href="ssh.html">SSH Import</a><a class="nav-link" href="balance.html">Balance</a></nav>
+<a class="back" href="index.html">← Back to overview</a>
+<h1 class="page-title">Roadmap</h1><div class="track"><div class="track-step track-done"><span class="ts-id">A</span><span class="ts-name">Core gameplay foundations</span><span class="rm-pill rm-done">done</span></div><div class="track-step track-done"><span class="ts-id">B</span><span class="ts-name">Workflow &amp; tooling</span><span class="rm-pill rm-done">done</span></div><div class="track-step track-done"><span class="ts-id">C</span><span class="ts-name">Meta-progression</span><span class="rm-pill rm-done">done</span></div><div class="track-step track-active"><span class="ts-id">D</span><span class="ts-name">Spell depth &amp; balance</span><span class="rm-pill rm-active">active</span></div><div class="track-step track-upcoming"><span class="ts-id">E</span><span class="ts-name">Visual &amp; audio</span><span class="rm-pill rm-upcoming">upcoming</span></div><div class="track-step track-upcoming"><span class="ts-id">F</span><span class="ts-name">Game loop &amp; feel</span><span class="rm-pill rm-upcoming">upcoming</span></div><div class="track-step track-upcoming"><span class="ts-id">G</span><span class="ts-name">Multiplayer &amp; content expansion</span><span class="rm-pill rm-upcoming">upcoming</span></div><div class="track-step track-upcoming"><span class="ts-id">H</span><span class="ts-name">Beta &amp; launch</span><span class="rm-pill rm-upcoming">upcoming</span></div></div><div class="rm-detail"><section class="panel rm-phase rm-phase-done"><h2>Phase A · Core gameplay foundations <span class="rm-pill rm-done">done</span></h2><div class="rm-ms"><h3>Cast &amp; board systems <span class="rm-pill rm-done">done</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Fixed spell cast pipeline</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Independent left/right boards</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Sequential cast queue</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Binary shields with overflow</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Support spell cancellation</span><span class="rm-pill rm-done">done</span></li></ul></div><div class="rm-ms"><h3>Delivery &amp; content <span class="rm-pill rm-done">done</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">DeliveryType architecture (Instant/Straight/Arc)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">BurstCount / BurstInterval</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Full 9-spell Fire/Nature roster</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Caster-aware stat getters</span><span class="rm-pill rm-done">done</span></li></ul></div><div class="rm-ms"><h3>Presentation &amp; AI <span class="rm-pill rm-done">done</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">HeroUI (HP/level/shield/cast bars)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">HeroAI with type-aware selection</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Portrait 9:16 layout + minimap</span><span class="rm-pill rm-done">done</span></li></ul></div></section><section class="panel rm-phase rm-phase-done"><h2>Phase B · Workflow &amp; tooling <span class="rm-pill rm-done">done</span></h2><div class="rm-ms"><h3>Agent system <span class="rm-pill rm-done">done</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Agents, commands, CLAUDE.md</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Approval gate (commits, design, visuals)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Unity MCP editor bridge</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Remote review on phone</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Multi-page dashboard</span><span class="rm-pill rm-done">done</span></li></ul></div><div class="rm-ms"><h3>Control &amp; continuity <span class="rm-pill rm-done">done</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">roadmap-keeper agent</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">test-runner agent (pre-flight checks)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Question inbox + steering loop</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">&#x27;Since you last tested&#x27; tracking</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Initialize git + .gitignore + first commit</span><span class="rm-pill rm-done">done</span></li></ul></div></section><section class="panel rm-phase rm-phase-done"><h2>Phase C · Meta-progression <span class="rm-pill rm-done">done</span></h2><div class="rm-ms"><h3>Progression systems <span class="rm-pill rm-done">done</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Hero levels (backend + save)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Per-card-per-hero card levels (backend + save)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Scene wiring: HeroProgressionManager + config asset</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Deck-building UI</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Deck builder: typed slot rows at top (deck preview + collection below)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Hero selection screen (hero-first flow: roster → hero → scoped deck)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Main menu bottom nav bar (Play / Collection / Shop placeholder)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-low rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Chest / reward systems</span><span class="rm-pill rm-todo">to do</span></li></ul></div></section><section class="panel rm-phase rm-phase-active"><h2>Phase D · Spell depth &amp; balance <span class="rm-pill rm-active">active</span></h2><div class="rm-ms"><h3>Session fixes (June 11) <span class="rm-pill rm-done">done</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-low rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Arc Flare restored to Fire Mage default deck</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Design dashboard generator: persists across hook rewrites</span><span class="rm-pill rm-done">done</span></li></ul></div><div class="rm-ms"><h3>UI polish &amp; bug fixes (June 11 session 2) <span class="rm-pill rm-done">done</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">BleedToken radial timer overlay (UISprite + overrideSorting fix)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Shield drain bar (ShieldBarRoot toggled by fraction, ShieldBarFill drains)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Spell queue indicator (QueueText + OnQueueChanged event)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">XP progress bar for both players (OnXPChanged event chain)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Wave spawn interval bar (OnWaveTimerTick per-frame event)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Shield queuing — new shield waits for current to expire instead of overwriting</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Tile animation freeze fix — snap tiles before StopAllCoroutines in ForceRefillRestart</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">BleedToken gravity exclusion — skip tokens in ApplyGravityOnce and ApplyGravityAndRefill</span><span class="rm-pill rm-done">done</span></li></ul></div><div class="rm-ms"><h3>Bug fixes &amp; mechanics (June 12) <span class="rm-pill rm-done">done</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">BleedToken tile freeze fix — per-tile SmoothMove tracking (Dictionary&lt;int,Coroutine&gt;)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">BleedToken gravity fix — removed BleedToken exclusions from ApplyGravityOnce/ApplyGravityAndRefill</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">SafeApplyGravity wait-not-bail — while(gravityActive) instead of if bail</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Match hard stop — StopAllCoroutines + destroy in-flight projectiles/tokens on defeat</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Shield-locks-cast-queue — TryStartNextCast bails when Shield&gt;0, resumes via TryActivateNextShield</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Shield-break (FireRam) — BreaksShield field, strips shield then full damage</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Sever rework — InterruptsChannels + RemovesSpellTile; hitLanded pattern in Projectile Impact</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Fire/Nature Witch hero element fix — ElementB 7(Light) → 1(Nature)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">BleedToken timer visibility — white fill + dark semi-transparent background, OverrideSorting fix</span><span class="rm-pill rm-done">done</span></li></ul></div><div class="rm-ms"><h3>New mechanic types <span class="rm-pill rm-in-progress">in progress</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">DoT (bleed): SpellDefinition fields + HeroCombat tick handling</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Shield-break: FireRam spell — strips shield + full damage</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Channel interrupt + spell tile removal: Sever spell</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Self-debuff burst: amplified damage + timed self-penalty</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Conditional burst: bonus damage based on match-state condition</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-low rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Fragile self-buff: power boost lost if hit before next cast</span><span class="rm-pill rm-todo">to do</span></li></ul></div><div class="rm-ms"><h3>SSH hero roster — Zenron &amp; Jane <span class="rm-pill rm-in-progress">in progress</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">gen_spells.py: 57 spell assets generated</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">FireMarkToken proc-damage tile</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Slow / paralyze (ApplySlow)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">HealOverTime (BleedToken isHeal flag)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Board manipulation (ReplaceRandomTile, CloneHighestTier)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-low rm-st-done"><span class="rm-dot"></span><span class="rm-tname">RemoveHighestTierSpellTile</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">IsEscalating escalation chain</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Zenron pool: 36 spells wired to FireNatureStarter</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Jane pool: 35 spells wired to FireLightWitch</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">ApplySupport: SlowsOpponent + RemovesHighestSpellTile fix</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Flame Cannon DoublesPerExtraMatch mechanic</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-low rm-st-done"><span class="rm-dot"></span><span class="rm-tname">SSH ability research (docs/research/ssh-spell-abilities.md)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Play-test Zenron roster in BattleSceneV2</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Fix: Fire Rage — self-buff rage token (not channeled projectile)</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Fix: Healing Shield — HP restore = damage blocked (not flat heal)</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Fix: Firebat — destroy opponent spell tile (not plain damage)</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Fix: Pyroblast — also reset opponent fire mark timers</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Fix: Nature&#x27;s Revenge — damage = last hit received (not flat 200)</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li><li class="rm-task rm-pri-high rm-st-blocked"><span class="rm-dot"></span><span class="rm-tname">Play-test Jane roster in BattleSceneV2</span><span class="rm-pill rm-blocked">blocked</span> <span class="pri-flag">★ high</span></li></ul></div><div class="rm-ms"><h3>Fire/Nature Witch <span class="rm-pill rm-done">done</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Design full 9-spell roster (brief already in TODO.md)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Implement spell ScriptableObjects for Witch (SmallHeal, TwinVenom, VenomVolley, VenomStorm)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Wire Witch hero definition + deck builder integration (5B/3R/2E/1L)</span><span class="rm-pill rm-done">done</span></li></ul></div><div class="rm-ms"><h3>Hero roster locking <span class="rm-pill rm-done">done</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Fire/Nature Mage roster locked: 4B/3R/2E/1L (removed Sever + FireRam)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Fire/Nature Witch roster locked: 5B/3R/2E/1L</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Bot (RightHero) HeroDef pinned to FireNatureStarter always</span><span class="rm-pill rm-done">done</span></li></ul></div><div class="rm-ms"><h3>Balance &amp; bot parity (June 12) <span class="rm-pill rm-done">done</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-med rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Balance dashboard page (balance_check.py + generate_dashboard.py integration)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-low rm-st-done"><span class="rm-dot"></span><span class="rm-tname">balance-keeper agent doc (.claude/agents/balance-keeper.md)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">HP scaled to 1500; all spell values ×4 from original baseline</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Epic/Legendary impact boost: FireMeteor=480, MagmaBomb=280, MassiveShield=300</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Binary shield invariant pass (same-tier: defense wins equal; cross-tier: offense always wins)</span><span class="rm-pill rm-done">done</span></li><li class="rm-task rm-pri-high rm-st-done"><span class="rm-dot"></span><span class="rm-tname">Bot mirrors player hero level+cards: LevelOverride + MirrorHeroId set in HeroAI.Awake()</span><span class="rm-pill rm-done">done</span></li></ul></div><div class="rm-ms"><h3>AI &amp; balance <span class="rm-pill rm-todo">to do</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Update HeroAI to use DoT and shield-break spells correctly</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Balance pass: Fire/Nature Witch roster (after mechanic types done)</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Balance pass: Zenron + Jane SSH rosters</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li><li class="rm-task rm-pri-low rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Beam / Homing delivery types</span><span class="rm-pill rm-todo">to do</span></li></ul></div></section><section class="panel rm-phase rm-phase-upcoming"><h2>Phase E · Visual &amp; audio <span class="rm-pill rm-upcoming">upcoming</span></h2><div class="rm-ms"><h3>Art <span class="rm-pill rm-todo">to do</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Hero sprites (Mage + Witch)</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Background art (battle scene)</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Distinct spell projectile prefabs (Magma Bomb, Arc Flare, Fire Meteor, Witch spells)</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Spell impact VFX (smoke/explosion frames from Kenney pack)</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">SSH spell icons + ProjectilePrefab + ImpactVFX (57 spells)</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Assign FireMarkTokenPrefab on BoardManager in Inspector</span><span class="rm-pill rm-todo">to do</span></li></ul></div><div class="rm-ms"><h3>UI polish <span class="rm-pill rm-todo">to do</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Card thumbnails: rarity border color, element tint, tier badge</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Shield binary visual states (active icon vs. shattered/absent)</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Tier unlock moment: visual + audio weight (not just a stat change)</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li><li class="rm-task rm-pri-low rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Highlight differentiation: active spell vs fueled spell on board</span><span class="rm-pill rm-todo">to do</span></li></ul></div><div class="rm-ms"><h3>Audio <span class="rm-pill rm-todo">to do</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Spell cast sound effects</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Spell impact sound effects</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Background music (battle + main menu)</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-low rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">UI sound effects (button taps, nav, deck builder)</span><span class="rm-pill rm-todo">to do</span></li></ul></div></section><section class="panel rm-phase rm-phase-upcoming"><h2>Phase F · Game loop &amp; feel <span class="rm-pill rm-upcoming">upcoming</span></h2><div class="rm-ms"><h3>Match feel <span class="rm-pill rm-todo">to do</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Win/loss screen polish (animations, XP breakdown)</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Match pacing review (are early rounds too slow / too fast?)</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">First-launch tutorial / onboarding flow</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li></ul></div><div class="rm-ms"><h3>Progression loop <span class="rm-pill rm-todo">to do</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Chest / reward system (earn chests, open for cards/XP)</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Shop implementation (card packs, currencies, hero unlock)</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Currency design: max 2 types, both explained on first encounter</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Hero unlock flow: generous early access, not slow grind</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li></ul></div></section><section class="panel rm-phase rm-phase-upcoming"><h2>Phase G · Multiplayer &amp; content expansion <span class="rm-pill rm-upcoming">upcoming</span></h2><div class="rm-ms"><h3>Real-time PvP <span class="rm-pill rm-todo">to do</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Networking architecture decision (relay vs. dedicated server vs. P2P)</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Matchmaking system</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Lag compensation / input prediction for cast pipeline</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Anti-cheat / server authority for damage values</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Disconnect / reconnect handling</span><span class="rm-pill rm-todo">to do</span></li></ul></div><div class="rm-ms"><h3>Content expansion <span class="rm-pill rm-todo">to do</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Third hero (new element pair + signature mechanic)</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-low rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Fourth hero</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-low rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">New elements (Shadow, Lightning, Ice, Earth, Water — pick 1–2)</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Mobile performance optimization (profiling pass)</span><span class="rm-pill rm-todo">to do</span></li></ul></div></section><section class="panel rm-phase rm-phase-upcoming"><h2>Phase H · Beta &amp; launch <span class="rm-pill rm-upcoming">upcoming</span></h2><div class="rm-ms"><h3>Go to market <span class="rm-pill rm-todo">to do</span></h3><ul class="rm-tasks"><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Beta testing program</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Analytics / telemetry (session length, match outcomes, churn points)</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-high rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Store presence (App Store + Google Play listings)</span><span class="rm-pill rm-todo">to do</span> <span class="pri-flag">★ high</span></li><li class="rm-task rm-pri-med rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Marketing &amp; branding</span><span class="rm-pill rm-todo">to do</span></li><li class="rm-task rm-pri-low rm-st-todo"><span class="rm-dot"></span><span class="rm-tname">Email / feedback assistant for player inbox</span><span class="rm-pill rm-todo">to do</span></li></ul></div></section></div>
+<footer><span>Generated Wed 01 Jul · 22:14 · auto-refreshes every 20s</span><span>Regenerates after each agent turn</span></footer>
+</body></html>

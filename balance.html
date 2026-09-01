@@ -1,0 +1,631 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="20"><title>SpellBattle · Balance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0E0F1A;--panel:#161826;--panel-2:#1B1E30;--line:#262842;--ink:#E9E7F2;
+    --muted:#8E8CA8;--faint:#5E5C78;--fire:#FF7A3C;--nature:#57E39A;--arcane:#8A7CFF;
+    --amber:#FFC24B;--danger:#FF5D73;--display:'Space Grotesk',system-ui,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,monospace;--body:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;}
+  *{box-sizing:border-box;}
+  body{margin:0;color:var(--ink);font-family:var(--body);line-height:1.55;
+    padding:26px clamp(16px,4vw,48px) 64px;
+    background:radial-gradient(1200px 600px at 80% -10%,rgba(138,124,255,.10),transparent 60%),
+      radial-gradient(900px 500px at -5% 10%,rgba(255,122,60,.07),transparent 55%),var(--bg);}
+  a{color:var(--arcane);text-decoration:none;} a:hover{text-decoration:underline;}
+  code{font-family:var(--mono);}
+  header.hud{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-bottom:14px;}
+  .mark{font-family:var(--display);font-weight:700;font-size:1.4rem;letter-spacing:.02em;}
+  .mark .sig{color:var(--fire);}
+  .eyebrow{font-family:var(--mono);font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--faint);display:block;margin-bottom:2px;}
+  .phase{font-family:var(--display);font-weight:600;color:var(--nature);}
+  .hud-right{margin-left:auto;display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+  .chip{font-family:var(--mono);font-size:.72rem;padding:5px 10px;border-radius:999px;
+    border:1px solid var(--line);color:var(--muted);background:var(--panel);}
+  .chip-ok{color:var(--nature);border-color:rgba(87,227,154,.35);}
+  .chip-warn{color:var(--amber);border-color:rgba(255,194,75,.35);}
+  .sigil{display:inline-flex;align-items:center;gap:7px;font-family:var(--display);font-weight:700;
+    padding:6px 13px;border-radius:999px;background:rgba(255,194,75,.12);
+    border:1px solid rgba(255,194,75,.4);color:var(--amber);}
+  .sigil.zero{background:rgba(87,227,154,.10);border-color:rgba(87,227,154,.35);color:var(--nature);}
+  nav.topnav{display:flex;flex-wrap:wrap;gap:4px;border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);padding:8px 0;margin-bottom:22px;}
+  .nav-link{font-family:var(--display);font-weight:600;font-size:.84rem;color:var(--muted);
+    padding:7px 14px;border-radius:8px;letter-spacing:.01em;}
+  .nav-link:hover{color:var(--ink);background:var(--panel);text-decoration:none;}
+  .nav-link.active{color:var(--bg);background:var(--arcane);}
+  .back{display:inline-block;font-family:var(--mono);font-size:.78rem;color:var(--muted);
+    margin-bottom:16px;}
+  h1.page-title{font-family:var(--display);font-size:1.5rem;margin:0 0 18px;}
+  .grid{display:grid;grid-template-columns:1.35fr 1fr;gap:20px;align-items:start;}
+  @media(max-width:880px){.grid{grid-template-columns:1fr;}}
+  .col{display:flex;flex-direction:column;gap:20px;}
+  section.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;}
+  .panel h2{font-family:var(--display);font-size:.82rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 14px;font-weight:600;}
+  .panel.full{grid-column:1/-1;}
+  .empty{color:var(--faint);font-style:italic;margin:2px 0;}
+  /* menu cards */
+  .menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;}
+  .card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:18px;transition:border-color .15s,transform .15s;}
+  .card:hover{border-color:var(--arcane);transform:translateY(-2px);text-decoration:none;}
+  .card .c-name{font-family:var(--display);font-weight:700;font-size:1.05rem;color:var(--ink);}
+  .card .c-count{font-family:var(--mono);font-size:.78rem;color:var(--arcane);margin-top:6px;display:block;}
+  .card .c-desc{color:var(--muted);font-size:.82rem;margin-top:6px;}
+  /* review cast cards */
+  section.queue{border-color:rgba(255,194,75,.30);
+    background:linear-gradient(180deg,rgba(255,194,75,.05),var(--panel) 60%);}
+  section.queue h2{color:var(--amber);}
+  .cast-list{display:flex;flex-direction:column;gap:12px;}
+  .cast{border-left:3px solid var(--amber);background:var(--panel-2);padding:12px 16px;border-radius:0 10px 10px 0;}
+  .cast-kind{font-family:var(--mono);font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);}
+  .cast-summary{margin:4px 0 2px;font-family:var(--display);font-weight:600;font-size:1.02rem;}
+  .cast-meta{margin:0;color:var(--faint);font-size:.8rem;font-family:var(--mono);}
+  /* mana bar */
+  .focus-line{font-size:.95rem;color:var(--muted);margin:0 0 14px;} .focus-line b{color:var(--ink);}
+  .mana{display:flex;gap:3px;margin:8px 0 6px;} .seg{flex:1;height:14px;border-radius:3px;background:var(--panel-2);}
+  .seg.on{background:linear-gradient(180deg,var(--nature),#3bbf80);box-shadow:0 0 8px rgba(87,227,154,.4);}
+  .mana-label{font-family:var(--mono);font-size:.78rem;color:var(--muted);}
+  .open-items,.commits,.codex,.crew{list-style:none;padding:0;margin:0;}
+  .open-items li{padding:7px 0;border-top:1px solid var(--line);font-size:.9rem;}
+  .open-items li:first-child{border-top:0;} .open-items li::before{content:"◇";color:var(--arcane);margin-right:9px;}
+  .closed-item{color:var(--faint);} .closed-item::before{content:"✓" !important;color:var(--nature) !important;}
+  /* timeline */
+  .timeline{list-style:none;padding:0;margin:0;}
+  .ev{display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line);}
+  .ev:first-child{border-top:0;} .ev-dot{width:7px;height:7px;border-radius:50%;background:var(--arcane);transform:translateY(-1px);}
+  .ev-commit .ev-dot{background:var(--nature);} .ev-review .ev-dot{background:var(--amber);} .ev-design .ev-dot{background:var(--fire);}
+  .ev-text{font-size:.9rem;} .ev-when{font-family:var(--mono);font-size:.74rem;color:var(--faint);white-space:nowrap;}
+  .day-head{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--faint);margin:18px 0 6px;}
+  /* commits */
+  .commits li{display:grid;grid-template-columns:auto 1fr auto;gap:10px;padding:8px 0;border-top:1px solid var(--line);align-items:baseline;}
+  .commits li:first-child{border-top:0;} .commits code{color:var(--nature);font-size:.8rem;}
+  .commits span{font-size:.88rem;} .commits em{font-family:var(--mono);font-size:.72rem;color:var(--faint);font-style:normal;white-space:nowrap;}
+  /* tables */
+  table{border-collapse:collapse;width:100%;margin:14px 0;font-size:.86rem;}
+  th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top;}
+  th{background:var(--panel-2);font-family:var(--display);color:var(--ink);}
+  .status-pill{font-family:var(--mono);font-size:.72rem;padding:3px 9px;border-radius:999px;}
+  .st-done{background:rgba(87,227,154,.12);color:var(--nature);} .st-denied{background:rgba(255,93,115,.12);color:var(--danger);}
+  /* crew / gates */
+  .roles{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+  .role{font-size:.82rem;padding:6px 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);color:var(--muted);}
+  .role b{font-weight:600;margin-right:5px;} .role-you{border-color:rgba(255,122,60,.4);} .role-you b{color:var(--fire);}
+  .role-agents{border-color:rgba(87,227,154,.4);} .role-agents b{color:var(--nature);}
+  .crew li{padding:11px 0;border-top:1px solid var(--line);} .crew li:first-child{border-top:0;}
+  .agent-name{font-family:var(--mono);font-size:.86rem;color:var(--arcane);}
+  .agent-desc{display:block;font-size:.86rem;color:var(--muted);margin-top:3px;}
+  .agent-tools{display:block;font-family:var(--mono);font-size:.72rem;color:var(--faint);margin-top:4px;}
+  .gates{display:flex;flex-wrap:wrap;gap:7px;}
+  .tag{font-family:var(--mono);font-size:.72rem;padding:5px 10px;border-radius:7px;
+    background:rgba(255,194,75,.10);border:1px solid rgba(255,194,75,.3);color:var(--amber);}
+  /* research / capability doc rendering */
+  .toc{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+  .toc a{font-family:var(--mono);font-size:.78rem;padding:5px 11px;border-radius:8px;
+    background:var(--panel-2);border:1px solid var(--line);}
+  .doc{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px 22px;margin-bottom:22px;scroll-margin-top:20px;}
+  .doc h1,.doc h2,.doc h3,.doc h4{font-family:var(--display);}
+  .doc h2{font-size:1.25rem;border-bottom:1px solid var(--line);padding-bottom:8px;margin-top:24px;}
+  .doc .doc-meta{font-family:var(--mono);font-size:.74rem;color:var(--faint);}
+  .doc pre{background:#0b0c16;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto;font-size:.82rem;}
+  .doc blockquote{border-left:3px solid var(--arcane);margin:12px 0;padding:2px 16px;color:var(--muted);}
+  .doc code{background:var(--panel-2);padding:1px 6px;border-radius:5px;font-size:.85em;}
+  .doc pre code{background:none;padding:0;}
+  .rules-list{list-style:none;padding:0;margin:0;}
+  .rules-list li{padding:6px 0;font-size:.9rem;color:var(--muted);}
+  .rules-list li::before{content:"✦";color:var(--fire);margin-right:9px;opacity:.7;}
+  /* test banner */
+  .test-banner{display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,rgba(255,194,75,.16),rgba(255,122,60,.10));
+    border:1px solid rgba(255,194,75,.5);border-radius:12px;padding:14px 18px;margin-bottom:20px;color:var(--ink);}
+  .test-banner:hover{text-decoration:none;border-color:var(--amber);}
+  .tb-bell{font-size:1.3rem;}
+  .test-banner b{color:var(--amber);}
+  /* resume */
+  section.resume{background:linear-gradient(180deg,rgba(138,124,255,.08),var(--panel) 70%);border-color:rgba(138,124,255,.35);margin-bottom:22px;}
+  section.resume h2{color:var(--arcane);}
+  .resume-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+  @media(max-width:760px){.resume-grid{grid-template-columns:1fr;}}
+  .rz-label{font-family:var(--mono);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);}
+  .rz-big{font-family:var(--display);font-weight:600;font-size:1.05rem;color:var(--nature);margin:5px 0 10px;}
+  .rz-list{list-style:none;padding:0;margin:6px 0 0;} .rz-list li{padding:4px 0;font-size:.88rem;}
+  .rz-list li::before{content:"›";color:var(--arcane);margin-right:8px;}
+  .dim{color:var(--faint);} .pri-flag{color:var(--amber);font-size:.78rem;}
+  .rz-foot{margin:14px 0 0;font-family:var(--mono);font-size:.74rem;color:var(--faint);}
+  .waiting{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px;}
+  .wait-chip{font-family:var(--mono);font-size:.74rem;padding:5px 11px;border-radius:999px;border:1px solid var(--line);}
+  .wc-test{background:rgba(255,194,75,.12);border-color:rgba(255,194,75,.4);color:var(--amber);}
+  .wc-rev{background:rgba(255,122,60,.12);border-color:rgba(255,122,60,.4);color:var(--fire);}
+  .wc-q{background:rgba(138,124,255,.12);border-color:rgba(138,124,255,.4);color:var(--arcane);}
+  .wc-ok{background:rgba(87,227,154,.10);border-color:rgba(87,227,154,.35);color:var(--nature);}
+  /* questions / changes */
+  .qcard{border-left:3px solid var(--arcane);background:var(--panel-2);padding:12px 16px;border-radius:0 10px 10px 0;}
+  .q-text{margin:0 0 4px;font-family:var(--display);font-weight:600;}
+  .q-ctx{margin:0 0 4px;color:var(--muted);font-size:.86rem;}
+  .changes-list{list-style:none;padding:0;margin:0;}
+  .changes-list li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--line);font-size:.9rem;}
+  .changes-list li:first-child{border-top:0;}
+  .chg-gp .chg-text{color:var(--ink);} .gp-tag{font-family:var(--mono);font-size:.64rem;letter-spacing:.1em;
+    text-transform:uppercase;background:rgba(255,122,60,.16);color:var(--fire);padding:2px 7px;border-radius:5px;margin-left:6px;}
+  /* roadmap */
+  .track{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;margin-bottom:22px;}
+  .track-step{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;}
+  .track-step .ts-id{font-family:var(--mono);font-size:.7rem;color:var(--faint);}
+  .track-step .ts-name{display:block;font-family:var(--display);font-weight:600;margin:3px 0 8px;}
+  .track-active{border-color:var(--fire);background:linear-gradient(180deg,rgba(255,122,60,.10),var(--panel) 70%);}
+  .track-done{opacity:.72;}
+  .rm-detail{display:flex;flex-direction:column;gap:18px;}
+  .rm-phase h2{color:var(--ink);} .rm-phase-active{border-color:rgba(255,122,60,.4);}
+  .rm-phase-done{opacity:.82;}
+  .rm-ms{margin:14px 0;} .rm-ms h3{font-family:var(--display);font-size:.98rem;margin:0 0 8px;color:var(--muted);}
+  .rm-tasks{list-style:none;padding:0;margin:0;}
+  .rm-task{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;font-size:.9rem;}
+  .rm-task+.rm-task{margin-top:3px;} .rm-dot{width:8px;height:8px;border-radius:50%;background:var(--faint);flex:none;}
+  .rm-st-done .rm-dot{background:var(--nature);} .rm-st-in-progress .rm-dot{background:var(--arcane);}
+  .rm-st-blocked .rm-dot{background:var(--danger);}
+  .rm-task .rm-tname{flex:1;} .rm-st-done .rm-tname{color:var(--faint);text-decoration:line-through;}
+  .rm-pri-high{background:rgba(255,194,75,.07);} .rm-st-blocked{background:rgba(255,93,115,.08);}
+  .rm-pill{font-family:var(--mono);font-size:.66rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);}
+  .rm-done{color:var(--nature);border-color:rgba(87,227,154,.35);} .rm-in-progress{color:var(--arcane);border-color:rgba(138,124,255,.4);}
+  .rm-blocked{color:var(--danger);border-color:rgba(255,93,115,.4);} .rm-active{color:var(--fire);border-color:rgba(255,122,60,.4);}
+  footer{margin-top:30px;padding-top:16px;border-top:1px solid var(--line);font-family:var(--mono);
+    font-size:.74rem;color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  @media(prefers-reduced-motion:no-preference){.sigil:not(.zero){animation:pulse 2.4s ease-in-out infinite;}
+    @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,194,75,0);}50%{box-shadow:0 0 0 4px rgba(255,194,75,.12);}}}
+  :focus-visible{outline:2px solid var(--arcane);outline-offset:2px;}
+  /* design page */
+  .hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:22px;}
+  .hero-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;}
+  .hero-card.locked{opacity:.55;border-style:dashed;}
+  .hc-name{font-family:var(--display);font-weight:700;font-size:1.15rem;}
+  .hc-elems{display:flex;gap:6px;margin:8px 0;}
+  .hc-identity{font-size:.86rem;color:var(--muted);margin:4px 0 12px;}
+  .hc-deck-label{font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);}
+  .hc-deck-list{list-style:none;padding:0;margin:6px 0 0;display:flex;flex-wrap:wrap;gap:4px 14px;}
+  .hc-deck-list li{font-size:.84rem;display:flex;align-items:center;gap:5px;}
+  .badge{font-family:var(--mono);font-size:.64rem;padding:2px 7px;border-radius:6px;font-weight:600;white-space:nowrap;}
+  .badge-fire{background:rgba(255,122,60,.18);color:var(--fire);}
+  .badge-nature{background:rgba(87,227,154,.15);color:var(--nature);}
+  .badge-light{background:rgba(255,194,75,.15);color:var(--amber);}
+  .badge-basic{background:var(--panel-2);color:var(--muted);border:1px solid var(--line);}
+  .badge-rare{background:rgba(138,124,255,.15);color:var(--arcane);}
+  .badge-epic{background:rgba(140,80,255,.18);color:#c4b5fd;}
+  .badge-legendary{background:rgba(255,194,75,.18);color:var(--amber);}
+  .badge-offense{background:rgba(255,93,115,.12);color:var(--danger);}
+  .badge-defense{background:rgba(87,227,154,.12);color:var(--nature);}
+  .badge-support{background:rgba(138,124,255,.12);color:var(--arcane);}
+  .badge-unlocked{background:rgba(87,227,154,.12);color:var(--nature);}
+  .spell-section-head{font-family:var(--display);font-size:.82rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin:22px 0 10px;}
+  .spell-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-bottom:8px;}
+  .spell-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
+  .sc-header{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:5px;}
+  .sc-name{font-family:var(--display);font-weight:700;font-size:1.0rem;}
+  .sc-badges{display:flex;gap:4px;flex-wrap:wrap;}
+  .sc-id{font-family:var(--mono);font-size:.62rem;color:var(--faint);margin:0 0 5px;}
+  .sc-desc{font-size:.82rem;color:var(--muted);margin:0 0 7px;font-style:italic;}
+  .sc-stats{display:flex;flex-wrap:wrap;gap:5px 14px;margin:7px 0;font-size:.82rem;color:var(--muted);}
+  .sc-stats b{color:var(--ink);}
+  .mult-table{border-collapse:collapse;width:100%;margin:8px 0 0;font-size:.74rem;}
+  .mult-table th,.mult-table td{border:1px solid var(--line);padding:3px 5px;text-align:center;font-family:var(--mono);}
+  .mult-table th{background:var(--panel-2);font-size:.68rem;color:var(--muted);}
+  .mult-table td:first-child{font-size:.66rem;color:var(--muted);text-align:left;white-space:nowrap;padding-left:7px;}
+  .mult-table tr.row-total td{background:rgba(255,122,60,.06);}
+  .mult-table tr.row-hit-dot td{background:rgba(255,93,115,.07);}
+  .dot-banner{font-size:.78rem;margin:6px 0;padding:6px 10px;border-radius:7px;
+    background:rgba(255,93,115,.10);border:1px solid rgba(255,93,115,.25);color:var(--danger);}
+  .channel-banner{font-size:.78rem;margin:6px 0;padding:6px 10px;border-radius:7px;
+    background:rgba(138,124,255,.10);border:1px solid rgba(138,124,255,.30);color:#c4b5fd;}
+  .channel-table{border-collapse:collapse;width:100%;margin:8px 0 0;font-size:.8rem;}
+  .channel-table td{border:1px solid var(--line);padding:5px 9px;font-family:var(--mono);}
+  .channel-table td:first-child{color:var(--muted);font-size:.74rem;}
+  .spell-db-section{font-family:var(--display);font-size:.82rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin:22px 0 10px;}
+  .spell-db-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-bottom:18px;}
+  .spell-db-table th{background:var(--panel-2);font-family:var(--display);font-size:.74rem;padding:7px 10px;border:1px solid var(--line);}
+  .spell-db-table td{border:1px solid var(--line);padding:6px 10px;vertical-align:top;}
+  .spell-db-table tr:hover td{background:rgba(255,255,255,.02);}
+  .sdt-name{font-family:var(--display);font-weight:600;}
+  .sdt-flags{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px;}
+  .sdt-flag{font-family:var(--mono);font-size:.62rem;padding:2px 6px;border-radius:5px;}
+  .sdt-flag-channel{background:rgba(138,124,255,.15);color:#c4b5fd;}
+  .sdt-flag-shield{background:rgba(255,194,75,.12);color:var(--amber);}
+  .sdt-flag-interrupt{background:rgba(255,93,115,.12);color:var(--danger);}
+  .sdt-flag-dot{background:rgba(255,93,115,.12);color:var(--danger);}
+  .formula-box{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+    padding:10px 14px;font-family:var(--mono);font-size:.84rem;margin:8px 0;}
+  /* SSH import page */
+  .ssh-meta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
+  .ssh-chip{font-family:var(--mono);font-size:.78rem;padding:6px 13px;border-radius:999px;
+    background:rgba(138,124,255,.12);border:1px solid rgba(138,124,255,.35);color:#c4b5fd;}
+  .ssh-chip b{color:var(--ink);}
+  .ssh-never{background:rgba(255,194,75,.10);border-color:rgba(255,194,75,.35);color:var(--amber);}
+  .ssh-section{font-family:var(--display);font-size:.82rem;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--muted);border-top:1px solid var(--line);
+    padding-top:14px;margin:26px 0 10px;}
+  .ssh-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-bottom:18px;}
+  .ssh-table th{background:var(--panel-2);font-family:var(--display);font-size:.74rem;
+    padding:7px 10px;border:1px solid var(--line);white-space:nowrap;}
+  .ssh-table td{border:1px solid var(--line);padding:6px 10px;vertical-align:top;}
+  .ssh-table tr:hover td{background:rgba(255,255,255,.02);}
+  .ssh-name{font-family:var(--display);font-weight:600;}
+  .ssh-note{font-size:.72rem;color:var(--amber);font-family:var(--mono);}
+  .ssh-notes-list{list-style:none;padding:0;margin:0;}
+  .ssh-notes-list li{padding:5px 0;border-top:1px solid var(--line);font-size:.86rem;color:var(--muted);}
+  .ssh-notes-list li:first-child{border-top:0;}
+  .ssh-notes-list li::before{content:"⚑";color:var(--amber);margin-right:8px;}
+  .ssh-assets-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+  .ssh-asset-tag{font-family:var(--mono);font-size:.64rem;padding:3px 8px;border-radius:6px;
+    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);}
+</style></head><body>
+<header class="hud">
+  <div><span class="eyebrow">Real-time 1v1 spell battler · Unity 6</span>
+    <span class="mark"><span class="sig">◈</span> SPELLBATTLE</span></div>
+  <div><span class="eyebrow">Current phase</span><span class="phase">Foundations complete</span></div>
+  <div class="hud-right"><span class="chip">⌥ master</span><span class="chip chip-warn">184 uncommitted</span>
+    <span class="sigil zero">✓ all clear</span></div>
+</header>
+<nav class="topnav"><a class="nav-link" href="index.html">Overview</a><a class="nav-link" href="roadmap.html">Roadmap</a><a class="nav-link" href="inbox.html">Inbox</a><a class="nav-link" href="research.html">Research</a><a class="nav-link" href="activity.html">Activity</a><a class="nav-link" href="system.html">System</a><a class="nav-link" href="commits.html">Commits</a><a class="nav-link" href="design.html">Design</a><a class="nav-link" href="spells.html">Spells</a><a class="nav-link" href="ssh.html">SSH Import</a><a class="nav-link active" href="balance.html">Balance</a></nav>
+<a class="back" href="index.html">← Back to overview</a>
+<h1 class="page-title">Balance Analysis</h1>
+<div class="section">
+  <h2>Balance Status <span class="chip chip-ok">All invariants satisfied</span></h2>
+  <p style="color:var(--muted);font-size:.85rem;margin-top:-.5rem">
+    Shield mechanic: <strong>binary per hit</strong> — a single hit either bounces off fully
+    (hit&nbsp;&le;&nbsp;shield, shield value UNCHANGED) or shatters the shield with overflow to HP
+    (hit&nbsp;&gt;&nbsp;shield). Burst spells fire independent projectiles; each is
+    compared separately. The shield absorbs exactly <em>shield_strength</em> worth of damage when
+    it shatters, so a higher-rarity spell still sees meaningful mitigation from a lower-rarity shield.
+  </p>
+</div>
+
+<div class="section">
+  <h2>Core Invariant — N+1 Offense vs N Defense</h2>
+  <p style="color:var(--muted);font-size:.85rem;margin-top:-.5rem">
+    <strong>Same-tier:</strong> equal chain &#8594; defense wins; one extra tile on offense &#8594; offense wins.<br>
+    <strong>Higher-rarity offense:</strong> offense wins at any equal chain length, but shield absorbs
+    shield_strength damage (overflow to HP). Ceiling rule: defense_base &lt; offense_base &times; 12/11.
+    Checked at all chain lengths 1&#8211;8.
+  </p>
+  <table>
+    <thead><tr><th>Match-up</th><th>Status</th><th>Note</th></tr></thead>
+    <tbody>
+<tr>
+  <td>Fireball vs Small Shield (Basic vs Basic)&nbsp;<span style="font-size:.7rem;background:#2a2240;color:#9b79e0;padding:1px 5px;border-radius:3px">same tier</span></td>
+  <td style="text-align:center"><span style="color:#4ecf7a">✓</span></td>
+  <td style="font-size:.78rem;color:var(--muted)">All chain lengths OK</td>
+</tr>
+<tr>
+  <td>Double Fireball vs Small Shield (Rare &gt; Basic)&nbsp;<span style="font-size:.7rem;background:#2a2040;color:#e07940;padding:1px 5px;border-radius:3px">higher rarity</span></td>
+  <td style="text-align:center"><span style="color:#4ecf7a">✓</span></td>
+  <td style="font-size:.78rem;color:var(--muted)">All chain lengths OK</td>
+</tr>
+<tr>
+  <td>Double Fireball vs Big Shield (Rare vs Rare)&nbsp;<span style="font-size:.7rem;background:#2a2240;color:#9b79e0;padding:1px 5px;border-radius:3px">same tier</span></td>
+  <td style="text-align:center"><span style="color:#4ecf7a">✓</span></td>
+  <td style="font-size:.78rem;color:var(--muted)">All chain lengths OK</td>
+</tr>
+<tr>
+  <td>Magma Bomb vs Big Shield (Epic &gt; Rare)&nbsp;<span style="font-size:.7rem;background:#2a2040;color:#e07940;padding:1px 5px;border-radius:3px">higher rarity</span></td>
+  <td style="text-align:center"><span style="color:#4ecf7a">✓</span></td>
+  <td style="font-size:.78rem;color:var(--muted)">All chain lengths OK</td>
+</tr>
+<tr>
+  <td>Magma Bomb vs Massive Shield (Epic vs Epic)&nbsp;<span style="font-size:.7rem;background:#2a2240;color:#9b79e0;padding:1px 5px;border-radius:3px">same tier</span></td>
+  <td style="text-align:center"><span style="color:#4ecf7a">✓</span></td>
+  <td style="font-size:.78rem;color:var(--muted)">All chain lengths OK</td>
+</tr>
+<tr>
+  <td>Fire Meteor vs Massive Shield (Legendary &gt; Epic)&nbsp;<span style="font-size:.7rem;background:#2a2040;color:#e07940;padding:1px 5px;border-radius:3px">higher rarity</span></td>
+  <td style="text-align:center"><span style="color:#4ecf7a">✓</span></td>
+  <td style="font-size:.78rem;color:var(--muted)">All chain lengths OK</td>
+</tr>
+<tr>
+  <td>Fire Meteor vs Big Shield (Legendary &gt; Rare)&nbsp;<span style="font-size:.7rem;background:#2a2040;color:#e07940;padding:1px 5px;border-radius:3px">higher rarity</span></td>
+  <td style="text-align:center"><span style="color:#4ecf7a">✓</span></td>
+  <td style="font-size:.78rem;color:var(--muted)">All chain lengths OK</td>
+</tr></tbody>
+  </table>
+</div>
+
+
+
+<div class="section">
+  <h2>Rarity Differential — Partial Absorption at Equal Tiles</h2>
+  <p style="color:var(--muted);font-size:.85rem;margin-top:-.5rem">
+    When a higher-rarity spell hits a lower-rarity shield at the same tile count, the shield
+    shatters but absorbs a meaningful portion of the damage. The bar shows % mitigated.
+  </p>
+  <table>
+    <thead><tr>
+      <th>Offense</th><th>Defense</th>
+      <th>Atk power</th><th>Shield</th>
+      <th>HP damage</th><th>% absorbed</th>
+    </tr></thead>
+    <tbody>
+<tr>
+  <td style="color:#9b79e0">Double Fireball</td>
+  <td style="color:#7ec8e3">Small Shield</td>
+  <td>60</td>
+  <td>52</td>
+  <td style="color:#4ecf7a">8</td>
+  <td>
+    <div style="background:#1a1a2e;border-radius:3px;height:8px;width:80px;display:inline-block;vertical-align:middle">
+      <div style="background:#9b79e0;height:8px;border-radius:3px;width:87%"></div>
+    </div>
+    &nbsp;<span style="font-size:.78rem">87%</span>
+  </td>
+</tr>
+<tr>
+  <td style="color:#e07940">Magma Bomb</td>
+  <td style="color:#9b79e0">Big Shield</td>
+  <td>280</td>
+  <td>64</td>
+  <td style="color:#4ecf7a">216</td>
+  <td>
+    <div style="background:#1a1a2e;border-radius:3px;height:8px;width:80px;display:inline-block;vertical-align:middle">
+      <div style="background:#9b79e0;height:8px;border-radius:3px;width:23%"></div>
+    </div>
+    &nbsp;<span style="font-size:.78rem">23%</span>
+  </td>
+</tr>
+<tr>
+  <td style="color:#f0c040">Fire Meteor</td>
+  <td style="color:#e07940">Massive Shield</td>
+  <td>480</td>
+  <td>300</td>
+  <td style="color:#4ecf7a">180</td>
+  <td>
+    <div style="background:#1a1a2e;border-radius:3px;height:8px;width:80px;display:inline-block;vertical-align:middle">
+      <div style="background:#9b79e0;height:8px;border-radius:3px;width:62%"></div>
+    </div>
+    &nbsp;<span style="font-size:.78rem">62%</span>
+  </td>
+</tr>
+<tr>
+  <td style="color:#f0c040">Fire Meteor</td>
+  <td style="color:#9b79e0">Big Shield</td>
+  <td>480</td>
+  <td>64</td>
+  <td style="color:#4ecf7a">416</td>
+  <td>
+    <div style="background:#1a1a2e;border-radius:3px;height:8px;width:80px;display:inline-block;vertical-align:middle">
+      <div style="background:#9b79e0;height:8px;border-radius:3px;width:13%"></div>
+    </div>
+    &nbsp;<span style="font-size:.78rem">13%</span>
+  </td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>Interaction Matrix (1-tile vs 1-tile)</h2>
+  <p style="color:var(--muted);font-size:.85rem;margin-top:-.5rem">
+    &#10003;&nbsp;% = offense breaks shield, shield absorbed that&nbsp;% &nbsp;|&nbsp;
+    &#8212; = shield holds &nbsp;|&nbsp;
+    &#128165; = unconditional strip &nbsp;|&nbsp;
+    &#9888; = same-tier offense already wins at 1 tile (invariant violation)
+  </p>
+  <table>
+    <thead><tr><th>Spell (rarity &middot; power/hit)</th><th style="font-size:.72rem;color:#9b79e0">Big Shield<br><span style="color:var(--muted);font-weight:400">Rare&nbsp;64</span></th><th style="font-size:.72rem;color:#e07940">Healing Shield<br><span style="color:var(--muted);font-weight:400">Epic&nbsp;250</span></th><th style="font-size:.72rem;color:#7ec8e3">Leaf Shield<br><span style="color:var(--muted);font-weight:400">Basic&nbsp;28</span></th><th style="font-size:.72rem;color:#e07940">Massive Shield<br><span style="color:var(--muted);font-weight:400">Epic&nbsp;300</span></th><th style="font-size:.72rem;color:#7ec8e3">Small Shield<br><span style="color:var(--muted);font-weight:400">Basic&nbsp;52</span></th></tr></thead>
+    <tbody><tr><td style="font-size:.78rem;color:#7ec8e3">Arc Fire<br><span style="color:var(--muted);font-weight:400">Basic · 45/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="45.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="45.0 blocked by 250.0">&#8212;</td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 17 to HP, 62% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="45.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="45.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#7ec8e3">Arc Flare<br><span style="color:var(--muted);font-weight:400">Basic · 28/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="28.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="28.0 blocked by 250.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="28.0 blocked by 28.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="28.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="28.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#7ec8e3">Burning Needle<br><span style="color:var(--muted);font-weight:400">Basic · 28/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="28.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="28.0 blocked by 250.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="28.0 blocked by 28.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="28.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="28.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#7ec8e3">Ember Shot<br><span style="color:var(--muted);font-weight:400">Basic · 32/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="32.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="32.0 blocked by 250.0">&#8212;</td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 4 to HP, 88% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="32.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="32.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#7ec8e3">Fire Arrow<br><span style="color:var(--muted);font-weight:400">Basic · 40/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 250.0">&#8212;</td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 12 to HP, 70% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#7ec8e3">Fireball<br><span style="color:var(--muted);font-weight:400">Basic · 48/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="48.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="48.0 blocked by 250.0">&#8212;</td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 20 to HP, 58% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="48.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="48.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#7ec8e3">Firebat<br><span style="color:var(--muted);font-weight:400">Basic · 45/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="45.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="45.0 blocked by 250.0">&#8212;</td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 17 to HP, 62% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="45.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="45.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#7ec8e3">Fire Bomb<br><span style="color:var(--muted);font-weight:400">Basic · 48/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="48.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="48.0 blocked by 250.0">&#8212;</td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 20 to HP, 58% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="48.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="48.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#7ec8e3">Fire Flash<br><span style="color:var(--muted);font-weight:400">Basic · 40/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 250.0">&#8212;</td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 12 to HP, 70% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#7ec8e3">Flame Cannon<br><span style="color:var(--muted);font-weight:400">Basic · 55/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="55.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="55.0 blocked by 250.0">&#8212;</td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 27 to HP, 51% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="55.0 blocked by 300.0">&#8212;</td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 3 to HP, 95% absorbed">&#x26A0;</td></tr><tr><td style="font-size:.78rem;color:#7ec8e3">Glowing Sparkles<br><span style="color:var(--muted);font-weight:400">Basic · 35/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="35.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="35.0 blocked by 250.0">&#8212;</td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 7 to HP, 80% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="35.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="35.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#7ec8e3">Nova Vision<br><span style="color:var(--muted);font-weight:400">Basic · 52/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="52.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="52.0 blocked by 250.0">&#8212;</td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 24 to HP, 54% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="52.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="52.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#7ec8e3">Overheated Fireball<br><span style="color:var(--muted);font-weight:400">Basic · 55/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="55.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="55.0 blocked by 250.0">&#8212;</td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 27 to HP, 51% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="55.0 blocked by 300.0">&#8212;</td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 3 to HP, 95% absorbed">&#x26A0;</td></tr><tr><td style="font-size:.78rem;color:#7ec8e3">Overheated Vaporize<br><span style="color:var(--muted);font-weight:400">Basic · 30×2/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="30.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="30.0 blocked by 250.0">&#8212;</td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 2 to HP, 93% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="30.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="30.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#7ec8e3">Pierce<br><span style="color:var(--muted);font-weight:400">Basic · 40/hit</span></td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td></tr><tr><td style="font-size:.78rem;color:#7ec8e3">Spellbreaker<br><span style="color:var(--muted);font-weight:400">Basic · 30/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="30.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="30.0 blocked by 250.0">&#8212;</td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 2 to HP, 93% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="30.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="30.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#7ec8e3">Vaporize<br><span style="color:var(--muted);font-weight:400">Basic · 25×2/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="25.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="25.0 blocked by 250.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="25.0 blocked by 28.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="25.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="25.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#7ec8e3">Venom Arc<br><span style="color:var(--muted);font-weight:400">Basic · 16/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="16.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="16.0 blocked by 250.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="16.0 blocked by 28.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="16.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="16.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#9b79e0">Annihilating Fire<br><span style="color:var(--muted);font-weight:400">Rare · 110/hit</span></td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 46 to HP, 58% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="110.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 82 to HP, 25% absorbed">&#10003; 25%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="110.0 blocked by 300.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 58 to HP, 47% absorbed">&#10003; 47%</td></tr><tr><td style="font-size:.78rem;color:#9b79e0">Double Fireball<br><span style="color:var(--muted);font-weight:400">Rare · 60×2/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="60.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="60.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 32 to HP, 47% absorbed">&#10003; 47%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="60.0 blocked by 300.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 8 to HP, 87% absorbed">&#10003; 87%</td></tr><tr><td style="font-size:.78rem;color:#9b79e0">Finelance<br><span style="color:var(--muted);font-weight:400">Rare · 68/hit</span></td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 4 to HP, 94% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="68.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 40 to HP, 41% absorbed">&#10003; 41%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="68.0 blocked by 300.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 16 to HP, 76% absorbed">&#10003; 76%</td></tr><tr><td style="font-size:.78rem;color:#9b79e0">Fire Arrow x2<br><span style="color:var(--muted);font-weight:400">Rare · 40×2/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 12 to HP, 70% absorbed">&#10003; 70%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#9b79e0">Fire Beam<br><span style="color:var(--muted);font-weight:400">Rare · 120/hit</span></td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 56 to HP, 53% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="120.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 92 to HP, 23% absorbed">&#10003; 23%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="120.0 blocked by 300.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 68 to HP, 43% absorbed">&#10003; 43%</td></tr><tr><td style="font-size:.78rem;color:#9b79e0">Fire Phoenix<br><span style="color:var(--muted);font-weight:400">Rare · 85/hit</span></td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 21 to HP, 75% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="85.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 57 to HP, 33% absorbed">&#10003; 33%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="85.0 blocked by 300.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 33 to HP, 61% absorbed">&#10003; 61%</td></tr><tr><td style="font-size:.78rem;color:#9b79e0">Fire Ram<br><span style="color:var(--muted);font-weight:400">Rare · 80/hit</span></td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td></tr><tr><td style="font-size:.78rem;color:#9b79e0">Fire Rush<br><span style="color:var(--muted);font-weight:400">Rare · 48×3/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="48.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="48.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 20 to HP, 58% absorbed">&#10003; 58%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="48.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="48.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#9b79e0">Overheated Double Fireball<br><span style="color:var(--muted);font-weight:400">Rare · 72×2/hit</span></td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 8 to HP, 89% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="72.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 44 to HP, 39% absorbed">&#10003; 39%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="72.0 blocked by 300.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 20 to HP, 72% absorbed">&#10003; 72%</td></tr><tr><td style="font-size:.78rem;color:#9b79e0">Overheated Finelance<br><span style="color:var(--muted);font-weight:400">Rare · 80/hit</span></td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 16 to HP, 80% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="80.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 52 to HP, 35% absorbed">&#10003; 35%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="80.0 blocked by 300.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 28 to HP, 65% absorbed">&#10003; 65%</td></tr><tr><td style="font-size:.78rem;color:#9b79e0">Oxidation<br><span style="color:var(--muted);font-weight:400">Rare · 70/hit</span></td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 6 to HP, 91% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="70.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 42 to HP, 40% absorbed">&#10003; 40%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="70.0 blocked by 300.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 18 to HP, 74% absorbed">&#10003; 74%</td></tr><tr><td style="font-size:.78rem;color:#9b79e0">Pyroblast<br><span style="color:var(--muted);font-weight:400">Rare · 90/hit</span></td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td></tr><tr><td style="font-size:.78rem;color:#9b79e0">Twin Venom<br><span style="color:var(--muted);font-weight:400">Rare · 16×2/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="16.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="16.0 blocked by 250.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="16.0 blocked by 28.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="16.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="16.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#9b79e0">Volcano<br><span style="color:var(--muted);font-weight:400">Rare · 88/hit</span></td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 24 to HP, 73% absorbed">&#x26A0;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="88.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 60 to HP, 32% absorbed">&#10003; 32%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="88.0 blocked by 300.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 36 to HP, 59% absorbed">&#10003; 59%</td></tr><tr><td style="font-size:.78rem;color:#9b79e0">Wildfire Burst<br><span style="color:var(--muted);font-weight:400">Rare · 24×3/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="24.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="24.0 blocked by 250.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="24.0 blocked by 28.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="24.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="24.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#e07940">Blazing Spiral<br><span style="color:var(--muted);font-weight:400">Epic · 200/hit</span></td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 136 to HP, 32% absorbed">&#10003; 32%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="200.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 172 to HP, 14% absorbed">&#10003; 14%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="200.0 blocked by 300.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 148 to HP, 26% absorbed">&#10003; 26%</td></tr><tr><td style="font-size:.78rem;color:#e07940">Fire Arrow x4<br><span style="color:var(--muted);font-weight:400">Epic · 40×4/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 12 to HP, 70% absorbed">&#10003; 70%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#e07940">Fire Chain<br><span style="color:var(--muted);font-weight:400">Epic · 120×3/hit</span></td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 56 to HP, 53% absorbed">&#10003; 53%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="120.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 92 to HP, 23% absorbed">&#10003; 23%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="120.0 blocked by 300.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 68 to HP, 43% absorbed">&#10003; 43%</td></tr><tr><td style="font-size:.78rem;color:#e07940">Firefires<br><span style="color:var(--muted);font-weight:400">Epic · 80/hit</span></td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 16 to HP, 80% absorbed">&#10003; 80%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="80.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 52 to HP, 35% absorbed">&#10003; 35%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="80.0 blocked by 300.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 28 to HP, 65% absorbed">&#10003; 65%</td></tr><tr><td style="font-size:.78rem;color:#e07940">Fire Phoenix (Epic)<br><span style="color:var(--muted);font-weight:400">Epic · 200/hit</span></td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 136 to HP, 32% absorbed">&#10003; 32%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="200.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 172 to HP, 14% absorbed">&#10003; 14%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="200.0 blocked by 300.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 148 to HP, 26% absorbed">&#10003; 26%</td></tr><tr><td style="font-size:.78rem;color:#e07940">Magma Bomb<br><span style="color:var(--muted);font-weight:400">Epic · 280/hit</span></td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 216 to HP, 23% absorbed">&#10003; 23%</td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 30 to HP, 89% absorbed">&#x26A0;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 252 to HP, 10% absorbed">&#10003; 10%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="280.0 blocked by 300.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 228 to HP, 19% absorbed">&#10003; 19%</td></tr><tr><td style="font-size:.78rem;color:#e07940">Nature&#x27;s Revenge<br><span style="color:var(--muted);font-weight:400">Epic · 200/hit</span></td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td><td style="color:#f0c040;text-align:center;font-size:.8rem" title="Unconditional strip">&#128165;</td></tr><tr><td style="font-size:.78rem;color:#e07940">Scorch<br><span style="color:var(--muted);font-weight:400">Epic · 150/hit</span></td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 86 to HP, 43% absorbed">&#10003; 43%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="150.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 122 to HP, 19% absorbed">&#10003; 19%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="150.0 blocked by 300.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 98 to HP, 35% absorbed">&#10003; 35%</td></tr><tr><td style="font-size:.78rem;color:#e07940">Scorpio Sting<br><span style="color:var(--muted);font-weight:400">Epic · 200/hit</span></td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 136 to HP, 32% absorbed">&#10003; 32%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="200.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 172 to HP, 14% absorbed">&#10003; 14%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="200.0 blocked by 300.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 148 to HP, 26% absorbed">&#10003; 26%</td></tr><tr><td style="font-size:.78rem;color:#e07940">Super Nova Vision<br><span style="color:var(--muted);font-weight:400">Epic · 260/hit</span></td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 196 to HP, 25% absorbed">&#10003; 25%</td><td style="color:#e05050;text-align:center;font-size:.8rem" title="Breaks: 10 to HP, 96% absorbed">&#x26A0;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 232 to HP, 11% absorbed">&#10003; 11%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="260.0 blocked by 300.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 208 to HP, 20% absorbed">&#10003; 20%</td></tr><tr><td style="font-size:.78rem;color:#e07940">Venom Volley<br><span style="color:var(--muted);font-weight:400">Epic · 16×4/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="16.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="16.0 blocked by 250.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="16.0 blocked by 28.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="16.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="16.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#f0c040">Burning Slam<br><span style="color:var(--muted);font-weight:400">Legendary · 450/hit</span></td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 386 to HP, 14% absorbed">&#10003; 14%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 200 to HP, 56% absorbed">&#10003; 56%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 422 to HP, 6% absorbed">&#10003; 6%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 150 to HP, 67% absorbed">&#10003; 67%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 398 to HP, 12% absorbed">&#10003; 12%</td></tr><tr><td style="font-size:.78rem;color:#f0c040">Double Magma Bomb<br><span style="color:var(--muted);font-weight:400">Legendary · 280×2/hit</span></td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 216 to HP, 23% absorbed">&#10003; 23%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 30 to HP, 89% absorbed">&#10003; 89%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 252 to HP, 10% absorbed">&#10003; 10%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="280.0 blocked by 300.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 228 to HP, 19% absorbed">&#10003; 19%</td></tr><tr><td style="font-size:.78rem;color:#f0c040">Dragon&#x27;s Breath<br><span style="color:var(--muted);font-weight:400">Legendary · 600/hit</span></td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 536 to HP, 11% absorbed">&#10003; 11%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 350 to HP, 42% absorbed">&#10003; 42%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 572 to HP, 5% absorbed">&#10003; 5%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 300 to HP, 50% absorbed">&#10003; 50%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 548 to HP, 9% absorbed">&#10003; 9%</td></tr><tr><td style="font-size:.78rem;color:#f0c040">Fire Arrow x8<br><span style="color:var(--muted);font-weight:400">Legendary · 40×8/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 250.0">&#8212;</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 12 to HP, 70% absorbed">&#10003; 70%</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="40.0 blocked by 52.0">&#8212;</td></tr><tr><td style="font-size:.78rem;color:#f0c040">Fire Meteor<br><span style="color:var(--muted);font-weight:400">Legendary · 480/hit</span></td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 416 to HP, 13% absorbed">&#10003; 13%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 230 to HP, 52% absorbed">&#10003; 52%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 452 to HP, 6% absorbed">&#10003; 6%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 180 to HP, 62% absorbed">&#10003; 62%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 428 to HP, 11% absorbed">&#10003; 11%</td></tr><tr><td style="font-size:.78rem;color:#f0c040">Fire Phoenix (Legendary)<br><span style="color:var(--muted);font-weight:400">Legendary · 480/hit</span></td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 416 to HP, 13% absorbed">&#10003; 13%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 230 to HP, 52% absorbed">&#10003; 52%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 452 to HP, 6% absorbed">&#10003; 6%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 180 to HP, 62% absorbed">&#10003; 62%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 428 to HP, 11% absorbed">&#10003; 11%</td></tr><tr><td style="font-size:.78rem;color:#f0c040">Inferno<br><span style="color:var(--muted);font-weight:400">Legendary · 520/hit</span></td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 456 to HP, 12% absorbed">&#10003; 12%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 270 to HP, 48% absorbed">&#10003; 48%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 492 to HP, 5% absorbed">&#10003; 5%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 220 to HP, 58% absorbed">&#10003; 58%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 468 to HP, 10% absorbed">&#10003; 10%</td></tr><tr><td style="font-size:.78rem;color:#f0c040">Poison Arrow<br><span style="color:var(--muted);font-weight:400">Legendary · 350/hit</span></td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 286 to HP, 18% absorbed">&#10003; 18%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 100 to HP, 71% absorbed">&#10003; 71%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 322 to HP, 8% absorbed">&#10003; 8%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 50 to HP, 86% absorbed">&#10003; 86%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 298 to HP, 15% absorbed">&#10003; 15%</td></tr><tr><td style="font-size:.78rem;color:#f0c040">Ultimate Scorch<br><span style="color:var(--muted);font-weight:400">Legendary · 360/hit</span></td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 296 to HP, 18% absorbed">&#10003; 18%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 110 to HP, 69% absorbed">&#10003; 69%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 332 to HP, 8% absorbed">&#10003; 8%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 60 to HP, 83% absorbed">&#10003; 83%</td><td style="color:#4ecf7a;text-align:center;font-size:.8rem" title="Breaks: 308 to HP, 14% absorbed">&#10003; 14%</td></tr><tr><td style="font-size:.78rem;color:#f0c040">Venom Storm<br><span style="color:var(--muted);font-weight:400">Legendary · 12×8/hit</span></td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="12.0 blocked by 64.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="12.0 blocked by 250.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="12.0 blocked by 28.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="12.0 blocked by 300.0">&#8212;</td><td style="color:#c0c0c0;text-align:center;font-size:.8rem" title="12.0 blocked by 52.0">&#8212;</td></tr></tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>Damage Scaling — % of HP by Chain Length</h2>
+  <p style="color:var(--muted);font-size:.85rem;margin-top:-.5rem">
+    Per-hit damage as a fraction of base HP (1500). Burst spells show per-burst.
+    <span style="color:#e05050;font-weight:600">Red = one-shot territory (&ge;100%)</span>&nbsp;
+    <span style="color:#e07940">Orange = &ge;75%</span>&nbsp;
+    <span style="color:#f0c040">Yellow = &ge;50%</span>
+  </p>
+  <table>
+    <thead><tr><th>Spell</th><th>1t</th><th>2t</th><th>3t</th><th>4t</th><th>5t</th><th>6t</th><th>7t</th><th>8t</th><th>9t</th></tr></thead>
+    <tbody><tr><td style="color:#7ec8e3;font-size:.78rem">Vaporize<br><span style="color:var(--muted);font-size:.7rem">per burst</span></td><td style="color:var(--muted);font-size:.78rem;text-align:right">2%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">2%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">2%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td></tr><tr><td style="color:#7ec8e3;font-size:.78rem">Arc Flare</td><td style="color:var(--muted);font-size:.78rem;text-align:right">2%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">2%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td></tr><tr><td style="color:#7ec8e3;font-size:.78rem">Overheated Vaporize<br><span style="color:var(--muted);font-size:.7rem">per burst</span></td><td style="color:var(--muted);font-size:.78rem;text-align:right">2%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">2%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td></tr><tr><td style="color:#7ec8e3;font-size:.78rem">Spellbreaker</td><td style="color:var(--muted);font-size:.78rem;text-align:right">2%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">2%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td></tr><tr><td style="color:#7ec8e3;font-size:.78rem">Ember Shot</td><td style="color:var(--muted);font-size:.78rem;text-align:right">2%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td></tr><tr><td style="color:#7ec8e3;font-size:.78rem">Glowing Sparkles</td><td style="color:var(--muted);font-size:.78rem;text-align:right">2%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td></tr><tr><td style="color:#7ec8e3;font-size:.78rem">Fire Flash</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td></tr><tr><td style="color:#7ec8e3;font-size:.78rem">Pierce</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td></tr><tr><td style="color:#7ec8e3;font-size:.78rem">Arc Fire</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">9%</td></tr><tr><td style="color:#7ec8e3;font-size:.78rem">Firebat</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">9%</td></tr><tr><td style="color:#7ec8e3;font-size:.78rem">Fireball</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">9%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">10%</td></tr><tr><td style="color:#7ec8e3;font-size:.78rem">Fire Bomb</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">9%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">10%</td></tr><tr><td style="color:#7ec8e3;font-size:.78rem">Nova Vision</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">9%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">10%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">10%</td></tr><tr><td style="color:#7ec8e3;font-size:.78rem">Flame Cannon</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">9%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">10%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">11%</td></tr><tr><td style="color:#7ec8e3;font-size:.78rem">Overheated Fireball</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">9%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">10%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">11%</td></tr><tr><td style="color:#9b79e0;font-size:.78rem">Wildfire Burst<br><span style="color:var(--muted);font-size:.7rem">per burst</span></td><td style="color:var(--muted);font-size:.78rem;text-align:right">2%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">2%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">2%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td></tr><tr><td style="color:#9b79e0;font-size:.78rem">Fire Rush<br><span style="color:var(--muted);font-size:.7rem">per burst</span></td><td style="color:var(--muted);font-size:.78rem;text-align:right">3%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">9%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">10%</td></tr><tr><td style="color:#9b79e0;font-size:.78rem">Double Fireball<br><span style="color:var(--muted);font-size:.7rem">per burst</span></td><td style="color:var(--muted);font-size:.78rem;text-align:right">4%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">9%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">10%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">11%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">12%</td></tr><tr><td style="color:#9b79e0;font-size:.78rem">Finelance</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">9%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">10%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">11%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">12%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">14%</td></tr><tr><td style="color:#9b79e0;font-size:.78rem">Overheated Double Fireball<br><span style="color:var(--muted);font-size:.7rem">per burst</span></td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">10%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">11%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">12%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">13%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">14%</td></tr><tr><td style="color:#9b79e0;font-size:.78rem">Fire Ram</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">9%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">11%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">12%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">13%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">15%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">16%</td></tr><tr><td style="color:#9b79e0;font-size:.78rem">Overheated Finelance</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">9%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">11%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">12%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">13%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">15%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">16%</td></tr><tr><td style="color:#9b79e0;font-size:.78rem">Fire Phoenix</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">10%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">11%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">13%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">14%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">16%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">17%</td></tr><tr><td style="color:#9b79e0;font-size:.78rem">Volcano</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">9%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">10%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">12%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">13%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">15%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">16%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">18%</td></tr><tr><td style="color:#9b79e0;font-size:.78rem">Pyroblast</td><td style="color:var(--muted);font-size:.78rem;text-align:right">6%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">9%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">10%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">12%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">14%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">15%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">16%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">18%</td></tr><tr><td style="color:#9b79e0;font-size:.78rem">Annihilating Fire</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">9%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">11%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">13%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">15%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">16%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">18%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">20%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">22%</td></tr><tr><td style="color:#9b79e0;font-size:.78rem">Fire Beam</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">10%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">12%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">14%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">16%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">18%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">20%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">22%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">24%</td></tr><tr><td style="color:#e07940;font-size:.78rem">Firefires</td><td style="color:var(--muted);font-size:.78rem;text-align:right">5%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">7%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">9%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">11%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">12%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">13%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">15%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">16%</td></tr><tr><td style="color:#e07940;font-size:.78rem">Fire Chain<br><span style="color:var(--muted);font-size:.7rem">per burst</span></td><td style="color:var(--muted);font-size:.78rem;text-align:right">8%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">10%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">12%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">14%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">16%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">18%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">20%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">22%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">24%</td></tr><tr><td style="color:#e07940;font-size:.78rem">Blazing Spiral</td><td style="color:var(--muted);font-size:.78rem;text-align:right">13%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">17%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">20%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">23%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">27%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">30%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">33%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">37%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">40%</td></tr><tr><td style="color:#e07940;font-size:.78rem">Fire Phoenix (Epic)</td><td style="color:var(--muted);font-size:.78rem;text-align:right">13%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">17%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">20%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">23%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">27%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">30%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">33%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">37%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">40%</td></tr><tr><td style="color:#e07940;font-size:.78rem">Nature&#x27;s Revenge</td><td style="color:var(--muted);font-size:.78rem;text-align:right">13%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">17%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">20%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">23%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">27%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">30%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">33%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">37%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">40%</td></tr><tr><td style="color:#e07940;font-size:.78rem">Super Nova Vision</td><td style="color:var(--muted);font-size:.78rem;text-align:right">17%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">22%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">26%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">30%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">35%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">39%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">43%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">48%</td><td style="color:#f0c040;font-size:.78rem;text-align:right">52%</td></tr><tr><td style="color:#e07940;font-size:.78rem">Magma Bomb</td><td style="color:var(--muted);font-size:.78rem;text-align:right">19%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">23%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">28%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">33%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">37%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">42%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">47%</td><td style="color:#f0c040;font-size:.78rem;text-align:right">51%</td><td style="color:#f0c040;font-size:.78rem;text-align:right">56%</td></tr><tr><td style="color:#f0c040;font-size:.78rem">Double Magma Bomb<br><span style="color:var(--muted);font-size:.7rem">per burst</span></td><td style="color:var(--muted);font-size:.78rem;text-align:right">19%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">23%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">28%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">33%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">37%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">42%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">47%</td><td style="color:#f0c040;font-size:.78rem;text-align:right">51%</td><td style="color:#f0c040;font-size:.78rem;text-align:right">56%</td></tr><tr><td style="color:#f0c040;font-size:.78rem">Fire Meteor</td><td style="color:var(--muted);font-size:.78rem;text-align:right">32%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">40%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">48%</td><td style="color:#f0c040;font-size:.78rem;text-align:right">56%</td><td style="color:#f0c040;font-size:.78rem;text-align:right">64%</td><td style="color:#f0c040;font-size:.78rem;text-align:right">72%</td><td style="font-weight:600;color:#e07940;font-size:.78rem;text-align:right">80%</td><td style="font-weight:600;color:#e07940;font-size:.78rem;text-align:right">88%</td><td style="font-weight:600;color:#e07940;font-size:.78rem;text-align:right">96%</td></tr><tr><td style="color:#f0c040;font-size:.78rem">Fire Phoenix (Legendary)</td><td style="color:var(--muted);font-size:.78rem;text-align:right">32%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">40%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">48%</td><td style="color:#f0c040;font-size:.78rem;text-align:right">56%</td><td style="color:#f0c040;font-size:.78rem;text-align:right">64%</td><td style="color:#f0c040;font-size:.78rem;text-align:right">72%</td><td style="font-weight:600;color:#e07940;font-size:.78rem;text-align:right">80%</td><td style="font-weight:600;color:#e07940;font-size:.78rem;text-align:right">88%</td><td style="font-weight:600;color:#e07940;font-size:.78rem;text-align:right">96%</td></tr><tr><td style="color:#f0c040;font-size:.78rem">Inferno</td><td style="color:var(--muted);font-size:.78rem;text-align:right">35%</td><td style="color:var(--muted);font-size:.78rem;text-align:right">43%</td><td style="color:#f0c040;font-size:.78rem;text-align:right">52%</td><td style="color:#f0c040;font-size:.78rem;text-align:right">61%</td><td style="color:#f0c040;font-size:.78rem;text-align:right">69%</td><td style="font-weight:600;color:#e07940;font-size:.78rem;text-align:right">78%</td><td style="font-weight:600;color:#e07940;font-size:.78rem;text-align:right">87%</td><td style="font-weight:600;color:#e07940;font-size:.78rem;text-align:right">95%</td><td style="font-weight:700;color:#e05050;font-size:.78rem;text-align:right">104%</td></tr><tr><td style="color:#f0c040;font-size:.78rem">Dragon&#x27;s Breath</td><td style="color:var(--muted);font-size:.78rem;text-align:right">40%</td><td style="color:#f0c040;font-size:.78rem;text-align:right">50%</td><td style="color:#f0c040;font-size:.78rem;text-align:right">60%</td><td style="color:#f0c040;font-size:.78rem;text-align:right">70%</td><td style="font-weight:600;color:#e07940;font-size:.78rem;text-align:right">80%</td><td style="font-weight:600;color:#e07940;font-size:.78rem;text-align:right">90%</td><td style="font-weight:700;color:#e05050;font-size:.78rem;text-align:right">100%</td><td style="font-weight:700;color:#e05050;font-size:.78rem;text-align:right">110%</td><td style="font-weight:700;color:#e05050;font-size:.78rem;text-align:right">120%</td></tr></tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>DoT Contribution</h2>
+  <p style="color:var(--muted);font-size:.85rem;margin-top:-.5rem">
+    DoT bypasses shields and stacks. Total = direct hits + full DoT run at 1-tile match.
+  </p>
+  <table>
+    <thead><tr><th>Spell</th><th>Rarity</th><th>Direct</th><th>DoT</th><th>Total (1-tile)</th></tr></thead>
+    <tbody>
+<tr>
+  <td>Burning Needle</td>
+  <td style="color:#7ec8e3">Basic</td>
+  <td>1 x 28 = 28</td>
+  <td>8.0/tick x 5 ticks = 40</td>
+  <td style="font-weight:600;color:#e07940">68</td>
+</tr>
+<tr>
+  <td>Burning Slam</td>
+  <td style="color:#f0c040">Legendary</td>
+  <td>1 x 450 = 450</td>
+  <td>25.0/tick x 6 ticks = 150</td>
+  <td style="font-weight:600;color:#e07940">600</td>
+</tr>
+<tr>
+  <td>Fire Arrow</td>
+  <td style="color:#7ec8e3">Basic</td>
+  <td>1 x 40 = 40</td>
+  <td>10.0/tick x 6 ticks = 60</td>
+  <td style="font-weight:600;color:#e07940">100</td>
+</tr>
+<tr>
+  <td>Fire Arrow x2</td>
+  <td style="color:#9b79e0">Rare</td>
+  <td>2 x 40 = 80</td>
+  <td>10.0/tick x 6 ticks = 60</td>
+  <td style="font-weight:600;color:#e07940">140</td>
+</tr>
+<tr>
+  <td>Fire Arrow x4</td>
+  <td style="color:#e07940">Epic</td>
+  <td>4 x 40 = 160</td>
+  <td>10.0/tick x 6 ticks = 60</td>
+  <td style="font-weight:600;color:#e07940">220</td>
+</tr>
+<tr>
+  <td>Fire Arrow x8</td>
+  <td style="color:#f0c040">Legendary</td>
+  <td>8 x 40 = 320</td>
+  <td>10.0/tick x 6 ticks = 60</td>
+  <td style="font-weight:600;color:#e07940">380</td>
+</tr>
+<tr>
+  <td>Healing Spring</td>
+  <td style="color:#e07940">Epic</td>
+  <td>1 x 0 = 0</td>
+  <td>40.0/tick x 6 ticks = 240</td>
+  <td style="font-weight:600;color:#e07940">240</td>
+</tr>
+<tr>
+  <td>Oxidation</td>
+  <td style="color:#9b79e0">Rare</td>
+  <td>1 x 70 = 70</td>
+  <td>12.0/tick x 6 ticks = 72</td>
+  <td style="font-weight:600;color:#e07940">142</td>
+</tr>
+<tr>
+  <td>Poison Arrow</td>
+  <td style="color:#f0c040">Legendary</td>
+  <td>1 x 350 = 350</td>
+  <td>30.0/tick x 10 ticks = 300</td>
+  <td style="font-weight:600;color:#e07940">650</td>
+</tr>
+<tr>
+  <td>Regeneration</td>
+  <td style="color:#9b79e0">Rare</td>
+  <td>1 x 0 = 0</td>
+  <td>25.0/tick x 8 ticks = 200</td>
+  <td style="font-weight:600;color:#e07940">200</td>
+</tr>
+<tr>
+  <td>Scorch</td>
+  <td style="color:#e07940">Epic</td>
+  <td>1 x 150 = 150</td>
+  <td>20.0/tick x 8 ticks = 160</td>
+  <td style="font-weight:600;color:#e07940">310</td>
+</tr>
+<tr>
+  <td>Scorpio Sting</td>
+  <td style="color:#e07940">Epic</td>
+  <td>1 x 200 = 200</td>
+  <td>18.0/tick x 8 ticks = 144</td>
+  <td style="font-weight:600;color:#e07940">344</td>
+</tr>
+<tr>
+  <td>Twin Venom</td>
+  <td style="color:#9b79e0">Rare</td>
+  <td>2 x 16 = 32</td>
+  <td>24.0/tick x 6 ticks = 144</td>
+  <td style="font-weight:600;color:#e07940">176</td>
+</tr>
+<tr>
+  <td>Ultimate Scorch</td>
+  <td style="color:#f0c040">Legendary</td>
+  <td>1 x 360 = 360</td>
+  <td>35.0/tick x 8 ticks = 280</td>
+  <td style="font-weight:600;color:#e07940">640</td>
+</tr>
+<tr>
+  <td>Venom Arc</td>
+  <td style="color:#7ec8e3">Basic</td>
+  <td>1 x 16 = 16</td>
+  <td>24.0/tick x 6 ticks = 144</td>
+  <td style="font-weight:600;color:#e07940">160</td>
+</tr>
+<tr>
+  <td>Venom Storm</td>
+  <td style="color:#f0c040">Legendary</td>
+  <td>8 x 12 = 96</td>
+  <td>24.0/tick x 6 ticks = 144</td>
+  <td style="font-weight:600;color:#e07940">240</td>
+</tr>
+<tr>
+  <td>Venom Volley</td>
+  <td style="color:#e07940">Epic</td>
+  <td>4 x 16 = 64</td>
+  <td>24.0/tick x 6 ticks = 144</td>
+  <td style="font-weight:600;color:#e07940">208</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>Match Timing — Level Progression</h2>
+  <p style="color:var(--muted);font-size:.85rem;margin-top:-.5rem">
+    XP per cast = 10 &times; (1 + 0.25 &times; (chain&#8722;1)).
+    Model: avg chain = 2 tiles (12.5 XP/cast),
+    0.4 casts/s.
+    <br>&#9888; HP=1500 with scaled damage keeps effective match duration ~80&#8211;120s (same as
+    before the scale). Level 4 is still borderline in pure offense-heavy matches. Meta-progression
+    note: HPPerLevel (currently 15) should scale to ~75 when out-of-combat hero leveling is
+    implemented (Phase C), to maintain a meaningful 5% per-level growth on the 1500 base.
+  </p>
+  <table>
+    <thead><tr><th>Level</th><th>Unlocks</th><th>XP Required</th><th>~Casts</th><th>~Time</th></tr></thead>
+    <tbody>
+<tr>
+  <td>Level 2</td>
+  <td style="color:#9b79e0">Rare spells unlock</td>
+  <td>100 XP</td>
+  <td>~8 casts</td>
+  <td>~20s at avg chain=2</td>
+</tr>
+<tr>
+  <td>Level 3</td>
+  <td style="color:#e07940">Epic spells unlock</td>
+  <td>250 XP</td>
+  <td>~20 casts</td>
+  <td>~50s at avg chain=2</td>
+</tr>
+<tr>
+  <td>Level 4</td>
+  <td style="color:#f0c040">Legendary spells unlock</td>
+  <td>500 XP</td>
+  <td>~40 casts</td>
+  <td>~100s at avg chain=2</td>
+</tr></tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>Channel Interrupt Thresholds</h2>
+  <p style="color:var(--muted);font-size:.85rem;margin-top:-.5rem">
+    Same binary rule as shields: a damage hit &gt; channel BasePower (and that gets past the shield)
+    breaks the cast. Channel BasePower scales with chain length exactly like shields.
+  </p>
+  <table>
+    <thead><tr><th>Channel Spell</th><th>Rarity</th><th>Threshold (1-tile)</th><th>Broken by (min chain)</th></tr></thead>
+    <tbody>
+<tr>
+  <td>Fire Beam</td>
+  <td style="color:#9b79e0">Rare</td>
+  <td>120</td>
+  <td style="font-size:.78rem;color:var(--muted)">Blazing Spiral(1t), Burning Slam(1t), Double Magma Bomb(1t), Dragon&#x27;s Breath(1t), Fire Meteor(1t), Fire Phoenix (Epic)(1t), Fire Phoenix (Legendary)(1t), Inferno(1t), Magma Bomb(1t), Nature&#x27;s Revenge(1t), Poison Arrow(1t), Scorch(1t), Scorpio Sting(1t), Super Nova Vision(1t), Ultimate Scorch(1t), Annihilating Fire(2t), Fire Beam(2t), Fire Chain(2t), Fire Phoenix(3t), Pyroblast(3t), Volcano(3t), Firefires(4t), Fire Ram(4t), Overheated Double Fireball(4t), Overheated Finelance(4t), Oxidation(4t), Finelance(5t), Double Fireball(6t), Flame Cannon(6t), Overheated Fireball(6t), Nova Vision(7t), Arc Fire(8t), Fireball(8t), Firebat(8t), Fire Bomb(8t), Fire Rush(8t)</td>
+</tr>
+<tr>
+  <td>Fire Rage</td>
+  <td style="color:#9b79e0">Rare</td>
+  <td>90</td>
+  <td style="font-size:.78rem;color:var(--muted)">Annihilating Fire(1t), Blazing Spiral(1t), Burning Slam(1t), Double Magma Bomb(1t), Dragon&#x27;s Breath(1t), Fire Beam(1t), Fire Chain(1t), Fire Meteor(1t), Fire Phoenix (Epic)(1t), Fire Phoenix (Legendary)(1t), Inferno(1t), Magma Bomb(1t), Nature&#x27;s Revenge(1t), Poison Arrow(1t), Scorch(1t), Scorpio Sting(1t), Super Nova Vision(1t), Ultimate Scorch(1t), Firefires(2t), Fire Phoenix(2t), Fire Ram(2t), Overheated Finelance(2t), Pyroblast(2t), Volcano(2t), Finelance(3t), Overheated Double Fireball(3t), Oxidation(3t), Double Fireball(4t), Flame Cannon(4t), Nova Vision(4t), Overheated Fireball(4t), Fireball(5t), Fire Bomb(5t), Fire Rush(5t), Arc Fire(6t), Firebat(6t), Fire Arrow(7t), Fire Arrow x2(7t), Fire Arrow x4(7t), Fire Arrow x8(7t), Fire Flash(7t), Pierce(7t), Glowing Sparkles(8t), Ember Shot(9t)</td>
+</tr>
+<tr>
+  <td>Sever</td>
+  <td style="color:#7ec8e3">Basic</td>
+  <td>52</td>
+  <td style="font-size:.78rem;color:var(--muted)">Annihilating Fire(1t), Blazing Spiral(1t), Burning Slam(1t), Double Fireball(1t), Double Magma Bomb(1t), Dragon&#x27;s Breath(1t), Finelance(1t), Fire Beam(1t), Fire Chain(1t), Firefires(1t), Fire Meteor(1t), Fire Phoenix(1t), Fire Phoenix (Epic)(1t), Fire Phoenix (Legendary)(1t), Fire Ram(1t), Flame Cannon(1t), Inferno(1t), Magma Bomb(1t), Nature&#x27;s Revenge(1t), Overheated Double Fireball(1t), Overheated Finelance(1t), Overheated Fireball(1t), Oxidation(1t), Poison Arrow(1t), Pyroblast(1t), Scorch(1t), Scorpio Sting(1t), Super Nova Vision(1t), Ultimate Scorch(1t), Volcano(1t), Arc Fire(2t), Fireball(2t), Firebat(2t), Fire Bomb(2t), Fire Rush(2t), Nova Vision(2t), Fire Arrow(3t), Fire Arrow x2(3t), Fire Arrow x4(3t), Fire Arrow x8(3t), Fire Flash(3t), Glowing Sparkles(3t), Pierce(3t), Ember Shot(4t), Overheated Vaporize(4t), Spellbreaker(4t), Arc Flare(5t), Burning Needle(5t), Vaporize(6t), Wildfire Burst(6t)</td>
+</tr></tbody>
+  </table>
+</div>
+
+<footer><span>Generated Wed 01 Jul · 22:14 · auto-refreshes every 20s</span><span>Regenerates after each agent turn</span></footer>
+</body></html>

@@ -1,0 +1,579 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="20"><title>SpellBattle · Research</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0E0F1A;--panel:#161826;--panel-2:#1B1E30;--line:#262842;--ink:#E9E7F2;
+    --muted:#8E8CA8;--faint:#5E5C78;--fire:#FF7A3C;--nature:#57E39A;--arcane:#8A7CFF;
+    --amber:#FFC24B;--danger:#FF5D73;--display:'Space Grotesk',system-ui,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,monospace;--body:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;}
+  *{box-sizing:border-box;}
+  body{margin:0;color:var(--ink);font-family:var(--body);line-height:1.55;
+    padding:26px clamp(16px,4vw,48px) 64px;
+    background:radial-gradient(1200px 600px at 80% -10%,rgba(138,124,255,.10),transparent 60%),
+      radial-gradient(900px 500px at -5% 10%,rgba(255,122,60,.07),transparent 55%),var(--bg);}
+  a{color:var(--arcane);text-decoration:none;} a:hover{text-decoration:underline;}
+  code{font-family:var(--mono);}
+  header.hud{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-bottom:14px;}
+  .mark{font-family:var(--display);font-weight:700;font-size:1.4rem;letter-spacing:.02em;}
+  .mark .sig{color:var(--fire);}
+  .eyebrow{font-family:var(--mono);font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--faint);display:block;margin-bottom:2px;}
+  .phase{font-family:var(--display);font-weight:600;color:var(--nature);}
+  .hud-right{margin-left:auto;display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+  .chip{font-family:var(--mono);font-size:.72rem;padding:5px 10px;border-radius:999px;
+    border:1px solid var(--line);color:var(--muted);background:var(--panel);}
+  .chip-ok{color:var(--nature);border-color:rgba(87,227,154,.35);}
+  .chip-warn{color:var(--amber);border-color:rgba(255,194,75,.35);}
+  .sigil{display:inline-flex;align-items:center;gap:7px;font-family:var(--display);font-weight:700;
+    padding:6px 13px;border-radius:999px;background:rgba(255,194,75,.12);
+    border:1px solid rgba(255,194,75,.4);color:var(--amber);}
+  .sigil.zero{background:rgba(87,227,154,.10);border-color:rgba(87,227,154,.35);color:var(--nature);}
+  nav.topnav{display:flex;flex-wrap:wrap;gap:4px;border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);padding:8px 0;margin-bottom:22px;}
+  .nav-link{font-family:var(--display);font-weight:600;font-size:.84rem;color:var(--muted);
+    padding:7px 14px;border-radius:8px;letter-spacing:.01em;}
+  .nav-link:hover{color:var(--ink);background:var(--panel);text-decoration:none;}
+  .nav-link.active{color:var(--bg);background:var(--arcane);}
+  .back{display:inline-block;font-family:var(--mono);font-size:.78rem;color:var(--muted);
+    margin-bottom:16px;}
+  h1.page-title{font-family:var(--display);font-size:1.5rem;margin:0 0 18px;}
+  .grid{display:grid;grid-template-columns:1.35fr 1fr;gap:20px;align-items:start;}
+  @media(max-width:880px){.grid{grid-template-columns:1fr;}}
+  .col{display:flex;flex-direction:column;gap:20px;}
+  section.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;}
+  .panel h2{font-family:var(--display);font-size:.82rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 14px;font-weight:600;}
+  .panel.full{grid-column:1/-1;}
+  .empty{color:var(--faint);font-style:italic;margin:2px 0;}
+  /* menu cards */
+  .menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;}
+  .card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:18px;transition:border-color .15s,transform .15s;}
+  .card:hover{border-color:var(--arcane);transform:translateY(-2px);text-decoration:none;}
+  .card .c-name{font-family:var(--display);font-weight:700;font-size:1.05rem;color:var(--ink);}
+  .card .c-count{font-family:var(--mono);font-size:.78rem;color:var(--arcane);margin-top:6px;display:block;}
+  .card .c-desc{color:var(--muted);font-size:.82rem;margin-top:6px;}
+  /* review cast cards */
+  section.queue{border-color:rgba(255,194,75,.30);
+    background:linear-gradient(180deg,rgba(255,194,75,.05),var(--panel) 60%);}
+  section.queue h2{color:var(--amber);}
+  .cast-list{display:flex;flex-direction:column;gap:12px;}
+  .cast{border-left:3px solid var(--amber);background:var(--panel-2);padding:12px 16px;border-radius:0 10px 10px 0;}
+  .cast-kind{font-family:var(--mono);font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);}
+  .cast-summary{margin:4px 0 2px;font-family:var(--display);font-weight:600;font-size:1.02rem;}
+  .cast-meta{margin:0;color:var(--faint);font-size:.8rem;font-family:var(--mono);}
+  /* mana bar */
+  .focus-line{font-size:.95rem;color:var(--muted);margin:0 0 14px;} .focus-line b{color:var(--ink);}
+  .mana{display:flex;gap:3px;margin:8px 0 6px;} .seg{flex:1;height:14px;border-radius:3px;background:var(--panel-2);}
+  .seg.on{background:linear-gradient(180deg,var(--nature),#3bbf80);box-shadow:0 0 8px rgba(87,227,154,.4);}
+  .mana-label{font-family:var(--mono);font-size:.78rem;color:var(--muted);}
+  .open-items,.commits,.codex,.crew{list-style:none;padding:0;margin:0;}
+  .open-items li{padding:7px 0;border-top:1px solid var(--line);font-size:.9rem;}
+  .open-items li:first-child{border-top:0;} .open-items li::before{content:"◇";color:var(--arcane);margin-right:9px;}
+  .closed-item{color:var(--faint);} .closed-item::before{content:"✓" !important;color:var(--nature) !important;}
+  /* timeline */
+  .timeline{list-style:none;padding:0;margin:0;}
+  .ev{display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line);}
+  .ev:first-child{border-top:0;} .ev-dot{width:7px;height:7px;border-radius:50%;background:var(--arcane);transform:translateY(-1px);}
+  .ev-commit .ev-dot{background:var(--nature);} .ev-review .ev-dot{background:var(--amber);} .ev-design .ev-dot{background:var(--fire);}
+  .ev-text{font-size:.9rem;} .ev-when{font-family:var(--mono);font-size:.74rem;color:var(--faint);white-space:nowrap;}
+  .day-head{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--faint);margin:18px 0 6px;}
+  /* commits */
+  .commits li{display:grid;grid-template-columns:auto 1fr auto;gap:10px;padding:8px 0;border-top:1px solid var(--line);align-items:baseline;}
+  .commits li:first-child{border-top:0;} .commits code{color:var(--nature);font-size:.8rem;}
+  .commits span{font-size:.88rem;} .commits em{font-family:var(--mono);font-size:.72rem;color:var(--faint);font-style:normal;white-space:nowrap;}
+  /* tables */
+  table{border-collapse:collapse;width:100%;margin:14px 0;font-size:.86rem;}
+  th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top;}
+  th{background:var(--panel-2);font-family:var(--display);color:var(--ink);}
+  .status-pill{font-family:var(--mono);font-size:.72rem;padding:3px 9px;border-radius:999px;}
+  .st-done{background:rgba(87,227,154,.12);color:var(--nature);} .st-denied{background:rgba(255,93,115,.12);color:var(--danger);}
+  /* crew / gates */
+  .roles{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+  .role{font-size:.82rem;padding:6px 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);color:var(--muted);}
+  .role b{font-weight:600;margin-right:5px;} .role-you{border-color:rgba(255,122,60,.4);} .role-you b{color:var(--fire);}
+  .role-agents{border-color:rgba(87,227,154,.4);} .role-agents b{color:var(--nature);}
+  .crew li{padding:11px 0;border-top:1px solid var(--line);} .crew li:first-child{border-top:0;}
+  .agent-name{font-family:var(--mono);font-size:.86rem;color:var(--arcane);}
+  .agent-desc{display:block;font-size:.86rem;color:var(--muted);margin-top:3px;}
+  .agent-tools{display:block;font-family:var(--mono);font-size:.72rem;color:var(--faint);margin-top:4px;}
+  .gates{display:flex;flex-wrap:wrap;gap:7px;}
+  .tag{font-family:var(--mono);font-size:.72rem;padding:5px 10px;border-radius:7px;
+    background:rgba(255,194,75,.10);border:1px solid rgba(255,194,75,.3);color:var(--amber);}
+  /* research / capability doc rendering */
+  .toc{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+  .toc a{font-family:var(--mono);font-size:.78rem;padding:5px 11px;border-radius:8px;
+    background:var(--panel-2);border:1px solid var(--line);}
+  .doc{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 26px 22px;margin-bottom:22px;scroll-margin-top:20px;}
+  .doc h1,.doc h2,.doc h3,.doc h4{font-family:var(--display);}
+  .doc h2{font-size:1.25rem;border-bottom:1px solid var(--line);padding-bottom:8px;margin-top:24px;}
+  .doc .doc-meta{font-family:var(--mono);font-size:.74rem;color:var(--faint);}
+  .doc pre{background:#0b0c16;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto;font-size:.82rem;}
+  .doc blockquote{border-left:3px solid var(--arcane);margin:12px 0;padding:2px 16px;color:var(--muted);}
+  .doc code{background:var(--panel-2);padding:1px 6px;border-radius:5px;font-size:.85em;}
+  .doc pre code{background:none;padding:0;}
+  .rules-list{list-style:none;padding:0;margin:0;}
+  .rules-list li{padding:6px 0;font-size:.9rem;color:var(--muted);}
+  .rules-list li::before{content:"✦";color:var(--fire);margin-right:9px;opacity:.7;}
+  /* test banner */
+  .test-banner{display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,rgba(255,194,75,.16),rgba(255,122,60,.10));
+    border:1px solid rgba(255,194,75,.5);border-radius:12px;padding:14px 18px;margin-bottom:20px;color:var(--ink);}
+  .test-banner:hover{text-decoration:none;border-color:var(--amber);}
+  .tb-bell{font-size:1.3rem;}
+  .test-banner b{color:var(--amber);}
+  /* resume */
+  section.resume{background:linear-gradient(180deg,rgba(138,124,255,.08),var(--panel) 70%);border-color:rgba(138,124,255,.35);margin-bottom:22px;}
+  section.resume h2{color:var(--arcane);}
+  .resume-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+  @media(max-width:760px){.resume-grid{grid-template-columns:1fr;}}
+  .rz-label{font-family:var(--mono);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);}
+  .rz-big{font-family:var(--display);font-weight:600;font-size:1.05rem;color:var(--nature);margin:5px 0 10px;}
+  .rz-list{list-style:none;padding:0;margin:6px 0 0;} .rz-list li{padding:4px 0;font-size:.88rem;}
+  .rz-list li::before{content:"›";color:var(--arcane);margin-right:8px;}
+  .dim{color:var(--faint);} .pri-flag{color:var(--amber);font-size:.78rem;}
+  .rz-foot{margin:14px 0 0;font-family:var(--mono);font-size:.74rem;color:var(--faint);}
+  .waiting{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px;}
+  .wait-chip{font-family:var(--mono);font-size:.74rem;padding:5px 11px;border-radius:999px;border:1px solid var(--line);}
+  .wc-test{background:rgba(255,194,75,.12);border-color:rgba(255,194,75,.4);color:var(--amber);}
+  .wc-rev{background:rgba(255,122,60,.12);border-color:rgba(255,122,60,.4);color:var(--fire);}
+  .wc-q{background:rgba(138,124,255,.12);border-color:rgba(138,124,255,.4);color:var(--arcane);}
+  .wc-ok{background:rgba(87,227,154,.10);border-color:rgba(87,227,154,.35);color:var(--nature);}
+  /* questions / changes */
+  .qcard{border-left:3px solid var(--arcane);background:var(--panel-2);padding:12px 16px;border-radius:0 10px 10px 0;}
+  .q-text{margin:0 0 4px;font-family:var(--display);font-weight:600;}
+  .q-ctx{margin:0 0 4px;color:var(--muted);font-size:.86rem;}
+  .changes-list{list-style:none;padding:0;margin:0;}
+  .changes-list li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--line);font-size:.9rem;}
+  .changes-list li:first-child{border-top:0;}
+  .chg-gp .chg-text{color:var(--ink);} .gp-tag{font-family:var(--mono);font-size:.64rem;letter-spacing:.1em;
+    text-transform:uppercase;background:rgba(255,122,60,.16);color:var(--fire);padding:2px 7px;border-radius:5px;margin-left:6px;}
+  /* roadmap */
+  .track{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;margin-bottom:22px;}
+  .track-step{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;}
+  .track-step .ts-id{font-family:var(--mono);font-size:.7rem;color:var(--faint);}
+  .track-step .ts-name{display:block;font-family:var(--display);font-weight:600;margin:3px 0 8px;}
+  .track-active{border-color:var(--fire);background:linear-gradient(180deg,rgba(255,122,60,.10),var(--panel) 70%);}
+  .track-done{opacity:.72;}
+  .rm-detail{display:flex;flex-direction:column;gap:18px;}
+  .rm-phase h2{color:var(--ink);} .rm-phase-active{border-color:rgba(255,122,60,.4);}
+  .rm-phase-done{opacity:.82;}
+  .rm-ms{margin:14px 0;} .rm-ms h3{font-family:var(--display);font-size:.98rem;margin:0 0 8px;color:var(--muted);}
+  .rm-tasks{list-style:none;padding:0;margin:0;}
+  .rm-task{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;font-size:.9rem;}
+  .rm-task+.rm-task{margin-top:3px;} .rm-dot{width:8px;height:8px;border-radius:50%;background:var(--faint);flex:none;}
+  .rm-st-done .rm-dot{background:var(--nature);} .rm-st-in-progress .rm-dot{background:var(--arcane);}
+  .rm-st-blocked .rm-dot{background:var(--danger);}
+  .rm-task .rm-tname{flex:1;} .rm-st-done .rm-tname{color:var(--faint);text-decoration:line-through;}
+  .rm-pri-high{background:rgba(255,194,75,.07);} .rm-st-blocked{background:rgba(255,93,115,.08);}
+  .rm-pill{font-family:var(--mono);font-size:.66rem;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);}
+  .rm-done{color:var(--nature);border-color:rgba(87,227,154,.35);} .rm-in-progress{color:var(--arcane);border-color:rgba(138,124,255,.4);}
+  .rm-blocked{color:var(--danger);border-color:rgba(255,93,115,.4);} .rm-active{color:var(--fire);border-color:rgba(255,122,60,.4);}
+  footer{margin-top:30px;padding-top:16px;border-top:1px solid var(--line);font-family:var(--mono);
+    font-size:.74rem;color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  @media(prefers-reduced-motion:no-preference){.sigil:not(.zero){animation:pulse 2.4s ease-in-out infinite;}
+    @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,194,75,0);}50%{box-shadow:0 0 0 4px rgba(255,194,75,.12);}}}
+  :focus-visible{outline:2px solid var(--arcane);outline-offset:2px;}
+  /* design page */
+  .hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:22px;}
+  .hero-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;}
+  .hero-card.locked{opacity:.55;border-style:dashed;}
+  .hc-name{font-family:var(--display);font-weight:700;font-size:1.15rem;}
+  .hc-elems{display:flex;gap:6px;margin:8px 0;}
+  .hc-identity{font-size:.86rem;color:var(--muted);margin:4px 0 12px;}
+  .hc-deck-label{font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);}
+  .hc-deck-list{list-style:none;padding:0;margin:6px 0 0;display:flex;flex-wrap:wrap;gap:4px 14px;}
+  .hc-deck-list li{font-size:.84rem;display:flex;align-items:center;gap:5px;}
+  .badge{font-family:var(--mono);font-size:.64rem;padding:2px 7px;border-radius:6px;font-weight:600;white-space:nowrap;}
+  .badge-fire{background:rgba(255,122,60,.18);color:var(--fire);}
+  .badge-nature{background:rgba(87,227,154,.15);color:var(--nature);}
+  .badge-light{background:rgba(255,194,75,.15);color:var(--amber);}
+  .badge-basic{background:var(--panel-2);color:var(--muted);border:1px solid var(--line);}
+  .badge-rare{background:rgba(138,124,255,.15);color:var(--arcane);}
+  .badge-epic{background:rgba(140,80,255,.18);color:#c4b5fd;}
+  .badge-legendary{background:rgba(255,194,75,.18);color:var(--amber);}
+  .badge-offense{background:rgba(255,93,115,.12);color:var(--danger);}
+  .badge-defense{background:rgba(87,227,154,.12);color:var(--nature);}
+  .badge-support{background:rgba(138,124,255,.12);color:var(--arcane);}
+  .badge-unlocked{background:rgba(87,227,154,.12);color:var(--nature);}
+  .spell-section-head{font-family:var(--display);font-size:.82rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin:22px 0 10px;}
+  .spell-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-bottom:8px;}
+  .spell-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
+  .sc-header{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:5px;}
+  .sc-name{font-family:var(--display);font-weight:700;font-size:1.0rem;}
+  .sc-badges{display:flex;gap:4px;flex-wrap:wrap;}
+  .sc-id{font-family:var(--mono);font-size:.62rem;color:var(--faint);margin:0 0 5px;}
+  .sc-desc{font-size:.82rem;color:var(--muted);margin:0 0 7px;font-style:italic;}
+  .sc-stats{display:flex;flex-wrap:wrap;gap:5px 14px;margin:7px 0;font-size:.82rem;color:var(--muted);}
+  .sc-stats b{color:var(--ink);}
+  .mult-table{border-collapse:collapse;width:100%;margin:8px 0 0;font-size:.74rem;}
+  .mult-table th,.mult-table td{border:1px solid var(--line);padding:3px 5px;text-align:center;font-family:var(--mono);}
+  .mult-table th{background:var(--panel-2);font-size:.68rem;color:var(--muted);}
+  .mult-table td:first-child{font-size:.66rem;color:var(--muted);text-align:left;white-space:nowrap;padding-left:7px;}
+  .mult-table tr.row-total td{background:rgba(255,122,60,.06);}
+  .mult-table tr.row-hit-dot td{background:rgba(255,93,115,.07);}
+  .dot-banner{font-size:.78rem;margin:6px 0;padding:6px 10px;border-radius:7px;
+    background:rgba(255,93,115,.10);border:1px solid rgba(255,93,115,.25);color:var(--danger);}
+  .channel-banner{font-size:.78rem;margin:6px 0;padding:6px 10px;border-radius:7px;
+    background:rgba(138,124,255,.10);border:1px solid rgba(138,124,255,.30);color:#c4b5fd;}
+  .channel-table{border-collapse:collapse;width:100%;margin:8px 0 0;font-size:.8rem;}
+  .channel-table td{border:1px solid var(--line);padding:5px 9px;font-family:var(--mono);}
+  .channel-table td:first-child{color:var(--muted);font-size:.74rem;}
+  .spell-db-section{font-family:var(--display);font-size:.82rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin:22px 0 10px;}
+  .spell-db-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-bottom:18px;}
+  .spell-db-table th{background:var(--panel-2);font-family:var(--display);font-size:.74rem;padding:7px 10px;border:1px solid var(--line);}
+  .spell-db-table td{border:1px solid var(--line);padding:6px 10px;vertical-align:top;}
+  .spell-db-table tr:hover td{background:rgba(255,255,255,.02);}
+  .sdt-name{font-family:var(--display);font-weight:600;}
+  .sdt-flags{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px;}
+  .sdt-flag{font-family:var(--mono);font-size:.62rem;padding:2px 6px;border-radius:5px;}
+  .sdt-flag-channel{background:rgba(138,124,255,.15);color:#c4b5fd;}
+  .sdt-flag-shield{background:rgba(255,194,75,.12);color:var(--amber);}
+  .sdt-flag-interrupt{background:rgba(255,93,115,.12);color:var(--danger);}
+  .sdt-flag-dot{background:rgba(255,93,115,.12);color:var(--danger);}
+  .formula-box{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+    padding:10px 14px;font-family:var(--mono);font-size:.84rem;margin:8px 0;}
+  /* SSH import page */
+  .ssh-meta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
+  .ssh-chip{font-family:var(--mono);font-size:.78rem;padding:6px 13px;border-radius:999px;
+    background:rgba(138,124,255,.12);border:1px solid rgba(138,124,255,.35);color:#c4b5fd;}
+  .ssh-chip b{color:var(--ink);}
+  .ssh-never{background:rgba(255,194,75,.10);border-color:rgba(255,194,75,.35);color:var(--amber);}
+  .ssh-section{font-family:var(--display);font-size:.82rem;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--muted);border-top:1px solid var(--line);
+    padding-top:14px;margin:26px 0 10px;}
+  .ssh-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-bottom:18px;}
+  .ssh-table th{background:var(--panel-2);font-family:var(--display);font-size:.74rem;
+    padding:7px 10px;border:1px solid var(--line);white-space:nowrap;}
+  .ssh-table td{border:1px solid var(--line);padding:6px 10px;vertical-align:top;}
+  .ssh-table tr:hover td{background:rgba(255,255,255,.02);}
+  .ssh-name{font-family:var(--display);font-weight:600;}
+  .ssh-note{font-size:.72rem;color:var(--amber);font-family:var(--mono);}
+  .ssh-notes-list{list-style:none;padding:0;margin:0;}
+  .ssh-notes-list li{padding:5px 0;border-top:1px solid var(--line);font-size:.86rem;color:var(--muted);}
+  .ssh-notes-list li:first-child{border-top:0;}
+  .ssh-notes-list li::before{content:"⚑";color:var(--amber);margin-right:8px;}
+  .ssh-assets-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+  .ssh-asset-tag{font-family:var(--mono);font-size:.64rem;padding:3px 8px;border-radius:6px;
+    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);}
+</style></head><body>
+<header class="hud">
+  <div><span class="eyebrow">Real-time 1v1 spell battler · Unity 6</span>
+    <span class="mark"><span class="sig">◈</span> SPELLBATTLE</span></div>
+  <div><span class="eyebrow">Current phase</span><span class="phase">Foundations complete</span></div>
+  <div class="hud-right"><span class="chip">⌥ master</span><span class="chip chip-warn">184 uncommitted</span>
+    <span class="sigil zero">✓ all clear</span></div>
+</header>
+<nav class="topnav"><a class="nav-link" href="index.html">Overview</a><a class="nav-link" href="roadmap.html">Roadmap</a><a class="nav-link" href="inbox.html">Inbox</a><a class="nav-link active" href="research.html">Research</a><a class="nav-link" href="activity.html">Activity</a><a class="nav-link" href="system.html">System</a><a class="nav-link" href="commits.html">Commits</a><a class="nav-link" href="design.html">Design</a><a class="nav-link" href="spells.html">Spells</a><a class="nav-link" href="ssh.html">SSH Import</a><a class="nav-link" href="balance.html">Balance</a></nav>
+<a class="back" href="index.html">← Back to overview</a>
+<h1 class="page-title">Research · everything in one place</h1><div class="toc"><a href="#ssh-spell-abilities">Super Spell Heroes — Spell Ability Reference: Zenron &amp; Jane</a><a href="#ssh-wiki">Super Spell Heroes — Research Reference</a><a href="#vertical-pvp-ui-ux-teardown">SpellBattle: UI/UX Competitive Intelligence</a><a href="#example-super-spell-heroes-teardown">Super Spell Heroes — monetization &amp; retention teardown</a></div><article class="doc" id="ssh-spell-abilities"><h2>Super Spell Heroes — Spell Ability Reference: Zenron &amp; Jane</h2><p class="doc-meta">01 Jul 2026 · <a href="../docs/research/ssh-spell-abilities.md" target="_blank" rel="noopener">source file</a></p><p><em>Researched 2026-07-01. Primary source: super-spell-heroes.fandom.com (blocked by 402 during this session — data collected from Google search snippets, strategy pages, and Facebook posts only). Secondary sources listed at bottom.</em></p>
+<h2>How to read this doc</h2>
+<p><strong>Confidence flags</strong></p>
+<ul><li>[WIKI] — text is quoted verbatim from a Fandom wiki snippet returned by Google</li><li>[INFERRED] — mechanic deduced from name, class, and game-context; mark as uncertain in .asset Description field</li><li>[PARTIAL] — wiki snippet confirmed the spell exists with some stats but description text is incomplete</li></ul>
+<p><strong>SSH rarity → SpellBattle rarity</strong> | SSH term | SpellBattle tier | |---|---| | Basic | 0 Basic | | Advanced | 1 Rare | | Elite | 2 Epic | | Ultimate | 3 Legendary |</p>
+<p><strong>SSH spell type vocabulary (confirmed from wiki snippets)</strong></p>
+<ul><li>Damage — direct damage</li><li>Break Power — can counter/break shields or destroy opponent tokens; bypasses shields (confirmed by Pyroblast context)</li><li>Resistance / Resistance Over Time — defensive buff or token placed on your own playfield</li><li>Affinity — modifies the playfield (replaces elements, clones spells)</li><li>Shield — blocking spell</li><li>Heal — restores caster HP</li></ul>
+<p><strong>Token mechanics (all confirmed from wiki):</strong></p>
+<ul><li><strong>Fire Mark Token</strong> — placed on opponent's playfield. Each has 25% chance to deal 50 damage every time the opponent is hit. Lasts ~10 seconds; timer resets on each successful hit.</li><li><strong>Bleed Token</strong> — placed on opponent's playfield. Deals 50 damage over time (DoT).</li><li><strong>Rage Token</strong> — placed on your own playfield by Fire Rage. Over-time effect that activates on timeout (exact bonus unclear — likely damage boost or counter).</li><li><strong>Weakness Token</strong> — placed on your own playfield by Earth spells. Halves the power of all spells while active.</li><li><strong>Stunned Token</strong> — placed on your own playfield when certain shields break. Exact effect unclear.</li><li><strong>Poison Token</strong> — placed on playfield, deals large DoT (e.g. 1000 damage from Poisoned Potion).</li></ul>
+<hr>
+<h2>ZENRON, THE SORCERER — Spell Roster</h2>
+<p>Zenron's identity: balanced, massive Fire offense backed by Nature defense. His defining traits are heavy direct-damage fire spells and Lava Morph playfield manipulation.</p>
+<hr>
+<h3>BASIC (rarity 0)</h3>
+<table class="md-table"><thead><tr><th>#</th><th>Spell</th><th>Element</th><th>Type</th><th>Mechanic / Ability</th></tr></thead><tbody><tr><td>1</td><td><strong>Fireball</strong></td><td>Fire</td><td>Offense</td><td>[PARTIAL] Standard fire projectile, deals direct damage. Standard cast speed. The foundational fire spell shared with Jane. No special mechanic confirmed.</td></tr><tr><td>2</td><td><strong>Arc Fire</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Fire damage delivered in an arc trajectory. No wiki snippet found; inferred from name. Possibly has higher AoE spread but note SpellBattle has no AoE — map as arc projectile.</td></tr><tr><td>3</td><td><strong>Flame Cannon</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Heavy fire damage, likely slow cast time (cannon = slow but powerful). No wiki description found.</td></tr><tr><td>4</td><td><strong>Fire Bomb</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Fire damage with lobbed/arc delivery. Likely a bomb that detonates on impact. No wiki description found.</td></tr><tr><td>5</td><td><strong>Overheated Fireball</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Powered-up variant of Fireball. "Overheated" is a Zenron-specific modifier — likely deals significantly increased damage or has an additional effect (burn?) when Zenron's playfield is hot/full of fire elements. Exact trigger condition unclear.</td></tr><tr><td>6</td><td><strong>Spellbreaker</strong></td><td>Fire or Nature</td><td>Support/Offense</td><td>[PARTIAL] Wiki page exists (super-spell-heroes.fandom.com/wiki/Spellbreaker) but content was not accessible. Name strongly implies it destroys or interrupts an opponent's in-progress spell. Given the game's "Break Power" mechanic, likely classified as Break Power type — cancels a channeled or mid-cast spell on opponent's side. Map to InterruptsChannels: 1.</td></tr><tr><td>7</td><td><strong>Vaporize</strong></td><td>Fire</td><td>Offense</td><td>[WIKI] Basic Fire, Damage type, <strong>Damage Count: 2, Slow speed</strong>. Fires 2 pulses of fire damage with a slow cast bar. No on-hit token effect confirmed.</td></tr><tr><td>8</td><td><strong>Overheated Vaporize</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Enhanced version of Vaporize. Likely increased damage or a DoT effect added on top of the base Damage Count: 2 mechanic.</td></tr><tr><td>9</td><td><strong>Nova Vision</strong></td><td>Fire or Light</td><td>Offense/Support</td><td>[INFERRED] "Vision" spells in SSH appear to be support or debuff spells. Name suggests a radial/pulse effect. No wiki snippet found. Could be a burn or mark-placing spell.</td></tr><tr><td>10</td><td><strong>Root Braid</strong></td><td>Nature</td><td>Support/Debuff</td><td>[INFERRED] Nature element, "Root" = immobilize/slow. Likely places a debuff token on the opponent's playfield that slows their cast bar or interrupts their tile-matching. No wiki description found.</td></tr><tr><td>11</td><td><strong>Cloning</strong></td><td>Nature</td><td>Support</td><td>[WIKI] Nature, Affinity type. "<strong>Clones the spell with the highest category on your playfield; the cloned spell is level 1.</strong>" Creates a copy of your highest-tier active spell at base power.</td></tr><tr><td>12</td><td><strong>Small Heal</strong></td><td>Nature</td><td>Defense</td><td>[INFERRED] Basic Nature heal. Small HP restoration, fast cast. Standard heal with no special mechanic. Shared between Zenron and Jane.</td></tr><tr><td>13</td><td><strong>Small Shield</strong></td><td>Nature</td><td>Defense</td><td>[INFERRED] Basic Nature shield. Small block value, fast cast. Standard shield with no special mechanic. Shared between Zenron and Jane.</td></tr></tbody></table>
+<hr>
+<h3>RARE / Advanced (rarity 1)</h3>
+<table class="md-table"><thead><tr><th>#</th><th>Spell</th><th>Element</th><th>Type</th><th>Mechanic / Ability</th></tr></thead><tbody><tr><td>14</td><td><strong>Finelance</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] "Fine" = thin/precise lance of fire. Likely single-target, high-damage, piercing projectile. No wiki description found. Possibly has Break Power (pierces shields).</td></tr><tr><td>15</td><td><strong>Fire Rage</strong></td><td>Fire</td><td>Support/Buff</td><td>[WIKI] Advanced, Fire, Resistance Over Time type. "<strong>Gives you a rage token on your own playfield. The rage token is an over-time effect that activates on timeout.</strong>" Rage token likely increases the power of Zenron's next fire spell(s). Exact boost amount and duration unclear.</td></tr><tr><td>16</td><td><strong>Volcano</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Rare fire damage spell. "Volcano" implies a channeled or multi-hit eruption — possibly fires multiple projectiles over time (burst count mechanic). No wiki description found.</td></tr><tr><td>17</td><td><strong>Annihilating Fire</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] High-damage fire spell. Name implies massive single-hit destruction. Possibly the heaviest direct-damage Rare fire spell. No wiki snippet found.</td></tr><tr><td>18</td><td><strong>Overheated Finelance</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Overheated variant of Finelance. Likely deals greater damage or adds a burn DoT on hit.</td></tr><tr><td>19</td><td><strong>Overheated Double Fireball</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Overheated variant of Double Fireball — fires 2 high-powered fireballs. Likely increased base damage compared to the base Double Fireball.</td></tr><tr><td>20</td><td><strong>Lava Morph</strong></td><td>Fire</td><td>Support</td><td>[WIKI] Advanced, Fire, Affinity type. "<strong>Replaces one element on your playfield with a random fire spell at level 1.</strong>" A playfield-manipulation spell that converts a non-fire tile into a fire tile, enabling more fire spell combos.</td></tr><tr><td>21</td><td><strong>Relief</strong></td><td>Nature</td><td>Defense</td><td>[INFERRED] Nature heal spell, Advanced tier. "Relief" implies a mid-to-large healing amount or a heal that also removes a debuff (e.g. removes a weakness or bleed token from your own side). No wiki description found.</td></tr><tr><td>22</td><td><strong>Double Fireball</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Fires 2 Fireballs in sequence (BurstCount: 2). Standard fire projectile damage × 2. No special on-hit mechanic confirmed.</td></tr></tbody></table>
+<hr>
+<h3>EPIC / Elite (rarity 2)</h3>
+<table class="md-table"><thead><tr><th>#</th><th>Spell</th><th>Element</th><th>Type</th><th>Mechanic / Ability</th></tr></thead><tbody><tr><td>23</td><td><strong>Super Nova Vision</strong></td><td>Fire or Light</td><td>Offense/Support</td><td>[INFERRED] Epic version of Nova Vision. Larger radius or stronger effect. No wiki description found.</td></tr><tr><td>24</td><td><strong>Spider Web</strong></td><td>Nature</td><td>Support/Debuff</td><td>[INFERRED] Nature, debuff type. "Spider Web" implies it slows or traps the opponent — likely places a slow token or directly slows the opponent's cast bar for a duration. No wiki description found.</td></tr><tr><td>25</td><td><strong>Nature's Revenge</strong></td><td>Nature</td><td>Offense</td><td>[WIKI] Elite, Nature, <strong>Break Power</strong> type, Fast speed. "<strong>Deals as much damage as you have lost from the last hit.</strong>" Retaliatory counter-strike — the more damage you just took, the harder this hits back. Strong synergy with shield spells.</td></tr><tr><td>26</td><td><strong>Healing Spring</strong></td><td>Nature</td><td>Defense</td><td>[INFERRED] Epic heal. "Spring" suggests a continuous or multi-tick heal (heal over time). Likely restores a larger amount of HP than Big Heal, possibly over several seconds. No wiki description found.</td></tr><tr><td>27</td><td><strong>Healing Shield</strong></td><td>Nature</td><td>Defense</td><td>[WIKI] Elite, Nature, Shield + Heal hybrid. "<strong>Restores your energy (HP) in the amount you have blocked.</strong>" Converts blocked damage into healing — the more damage the shield absorbs before breaking, the more HP is restored.</td></tr><tr><td>28</td><td><strong>Magma Bomb</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Epic fire damage, arc/lobbed delivery. Likely the Epic-tier heavy fire bomb. No wiki description found. Higher base damage than Fire Bomb.</td></tr><tr><td>29</td><td><strong>Big Heal</strong></td><td>Nature</td><td>Defense</td><td>[WIKI PARTIAL] Advanced/Rare tier in wiki cross-reference, but listed as Epic in Zenron's deck. Nature, Heal type. Standard large heal with no confirmed special mechanic beyond HP restoration.</td></tr><tr><td>30</td><td><strong>Big Shield</strong></td><td>Nature</td><td>Defense</td><td>[INFERRED] Epic Nature shield, higher block value than Small Shield. Standard shield mechanic, no special effect confirmed.</td></tr></tbody></table>
+<hr>
+<h3>LEGENDARY / Ultimate (rarity 3)</h3>
+<table class="md-table"><thead><tr><th>#</th><th>Spell</th><th>Element</th><th>Type</th><th>Mechanic / Ability</th></tr></thead><tbody><tr><td>31</td><td><strong>Double Magma Bomb</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Fires 2 Magma Bombs in sequence (BurstCount: 2). Doubles the impact of Magma Bomb. No wiki description found.</td></tr><tr><td>32</td><td><strong>Inferno</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Zenron's flagship Legendary fire attack. Likely a massive channeled or sustained fire damage spell. No wiki description found.</td></tr><tr><td>33</td><td><strong>Burning Slam</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Fire damage with a slam/melee-close mechanic. Possibly high damage with a burn DoT. No wiki description found.</td></tr><tr><td>34</td><td><strong>Fire Meteor</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Legendary fire damage via arc delivery (meteor falling from above). Likely the single highest-damage arc projectile in Zenron's kit.</td></tr><tr><td>35</td><td><strong>Massive Heal</strong></td><td>Nature</td><td>Defense</td><td>[WIKI PARTIAL] Elite/Epic/Legendary, Nature, Heal. The largest healing spell in the Nature lineup. No special mechanic beyond large HP restoration confirmed.</td></tr><tr><td>36</td><td><strong>Massive Shield</strong></td><td>Nature</td><td>Defense</td><td>[WIKI PARTIAL] Elite, Nature, Shield. Largest block value in the Nature lineup. No special mechanic confirmed.</td></tr></tbody></table>
+<hr>
+<h2>JANE, THE WITCH — Spell Roster</h2>
+<p>Jane's identity: rapid-fire attacks, spell removal / destruction, bleed DoT stacking, and poison. Her defining loop is apply bleed tokens → stack arrows → overwhelm with DoT. She can destroy spells on the opponent's playfield.</p>
+<hr>
+<h3>BASIC (rarity 0)</h3>
+<table class="md-table"><thead><tr><th>#</th><th>Spell</th><th>Element</th><th>Type</th><th>Mechanic / Ability</th></tr></thead><tbody><tr><td>1</td><td><strong>Fireball</strong></td><td>Fire</td><td>Offense</td><td>[PARTIAL] Shared with Zenron. Standard direct fire damage projectile. No special mechanic confirmed.</td></tr><tr><td>2</td><td><strong>Glowing Sparkles</strong></td><td>Fire or Nature</td><td>Support</td><td>[INFERRED] "Sparkles" implies a light/buff spell. Possibly places fire mark tokens on the opponent's playfield (similar to Fiery Flare logic) or provides a small stat boost. No wiki description found.</td></tr><tr><td>3</td><td><strong>Pierce</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] "Pierce" strongly suggests this spell bypasses or partially penetrates shields (Break Power). Likely a fast low-damage projectile that ignores shield protection. No wiki snippet found.</td></tr><tr><td>4</td><td><strong>Fire Arrow</strong></td><td>Fire</td><td>Offense</td><td>[WIKI] Basic, Fire, Damage, <strong>Fast speed</strong>. "<strong>Your opponent gets a bleed token that deals 50 damage over time.</strong>" Each Fire Arrow applies one bleed token on hit. Core of Jane's DoT strategy.</td></tr><tr><td>5</td><td><strong>Firebat</strong></td><td>Fire</td><td>Offense/Break</td><td>[PARTIAL] Confirmed from strategy context: "Jane's spells Firebat and Paralysing Dart can destroy spells." <strong>Destroys a spell on the opponent's playfield</strong> (Break Power type). Likely also deals fire damage on hit.</td></tr><tr><td>6</td><td><strong>Fire Flash</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Fast fire damage. "Flash" = instant/very fast cast, likely low damage but near-zero cast time. No wiki description found.</td></tr><tr><td>7</td><td><strong>Burning Needle</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Thin high-speed fire projectile. Likely applies a burn/bleed DoT on hit (similar to Fire Arrow). "Needle" suggests precision, possibly piercing. No wiki description found.</td></tr><tr><td>8</td><td><strong>Paralysing Dart</strong></td><td>Fire or Nature</td><td>Support/Break</td><td>[PARTIAL] Confirmed from strategy context: "Jane's spells Firebat and Paralysing Dart can destroy spells." <strong>Destroys a spell on the opponent's playfield.</strong> The "paralyse" in the name suggests it may also apply a slow or interrupt effect.</td></tr><tr><td>9</td><td><strong>Extinguish</strong></td><td>Nature or Fire</td><td>Support/Break</td><td>[INFERRED] "Extinguish" = snuffs out fire or a spell. Likely removes or destroys fire tokens or fire spells from either playfield. Could counter fire-heavy opponents. No wiki description found.</td></tr><tr><td>10</td><td><strong>Small Heal</strong></td><td>Nature</td><td>Defense</td><td>Shared with Zenron. See above.</td></tr><tr><td>11</td><td><strong>Small Shield</strong></td><td>Nature</td><td>Defense</td><td>Shared with Zenron. See above.</td></tr></tbody></table>
+<hr>
+<h3>RARE / Advanced (rarity 1)</h3>
+<table class="md-table"><thead><tr><th>#</th><th>Spell</th><th>Element</th><th>Type</th><th>Mechanic / Ability</th></tr></thead><tbody><tr><td>12</td><td><strong>Pyroblast</strong></td><td>Fire</td><td>Offense/Break</td><td>[WIKI] Advanced (Rare), Fire. "<strong>Helps going through most shields the opponent uses.</strong>" Confirmed shield-piercing / Break Power. Also: "<strong>Resets the fire mark token timer</strong>" — refreshing active fire marks to their full 10-second duration. High-damage fire spell that doubles as a support tool in fire mark decks.</td></tr><tr><td>13</td><td><strong>Oxidation</strong></td><td>Nature</td><td>Support/Debuff</td><td>[INFERRED] Nature element, "Oxidation" = corrosive breakdown. Possibly weakens or corrodes opponent's shields (reduces shield value or removes shield tokens). No wiki description found.</td></tr><tr><td>14</td><td><strong>Fire Beam</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Channeled fire damage (beam = sustained). Likely a Beam delivery type (IsChanneled: 1). Deals fire damage over the channel duration. No wiki description found.</td></tr><tr><td>15</td><td><strong>Fire Arrow x2</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Fires 2 Fire Arrows in sequence (BurstCount: 2), applying 2 bleed tokens on successive hits. Double the DoT of a single Fire Arrow.</td></tr><tr><td>16</td><td><strong>Fire Rush</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Fast burst of fire damage — "Rush" implies rapid cast or multiple fast hits. Possibly BurstCount &gt; 1 with very short BurstInterval. No wiki description found.</td></tr><tr><td>17</td><td><strong>Fire Phoenix</strong></td><td>Fire</td><td>Offense/Support</td><td>[INFERRED] Fire with phoenix theme = possibly self-resurrection or HP-recovery component on kill. More likely in this game context: a fire spell with a rebirth mechanic — possibly places a fire token that deals additional damage after a delay (the "second life" of the phoenix). No wiki description found.</td></tr><tr><td>18</td><td><strong>Heal Up</strong></td><td>Nature</td><td>Defense</td><td>[INFERRED] Standard moderate heal, Rare tier. Larger than Small Heal. No special mechanic confirmed.</td></tr><tr><td>19</td><td><strong>Regeneration</strong></td><td>Nature</td><td>Defense</td><td>[INFERRED] Nature heal over time. "Regeneration" implies periodic HP ticking rather than a single burst heal. Likely places a regen token on your playfield that heals for several ticks.</td></tr><tr><td>20</td><td><strong>Big Heal</strong></td><td>Nature</td><td>Defense</td><td>[WIKI PARTIAL] Confirmed on wiki as Nature Heal spell. Large single-hit HP restoration. No special mechanic confirmed.</td></tr><tr><td>21</td><td><strong>Big Shield</strong></td><td>Nature</td><td>Defense</td><td>[INFERRED] Large nature shield. Standard high block-value shield.</td></tr></tbody></table>
+<hr>
+<h3>EPIC / Elite (rarity 2)</h3>
+<table class="md-table"><thead><tr><th>#</th><th>Spell</th><th>Element</th><th>Type</th><th>Mechanic / Ability</th></tr></thead><tbody><tr><td>22</td><td><strong>Scorch</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Epic fire damage + burn DoT. "Scorch" implies leaving a burn effect on the target. Likely deals fire damage and applies a burn DoT (similar to a more powerful Burning Needle). No wiki description found.</td></tr><tr><td>23</td><td><strong>Blazing Spiral</strong></td><td>Fire</td><td>Offense</td><td>[WIKI] Elite, Fire, Affinity type. Wiki page confirmed but description marked as "Coming Soon" — content not yet written. Likely a spiral/spin fire delivery.</td></tr><tr><td>24</td><td><strong>Fire Arrow x4</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Fires 4 Fire Arrows in sequence (BurstCount: 4), applying 4 bleed tokens. Quadruples DoT stacking from a single cast.</td></tr><tr><td>25</td><td><strong>Fire Chain</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Fire damage that chains between hits — possibly a multi-projectile or bouncing arc. Likely applies bleed on each chain hit. No wiki description found.</td></tr><tr><td>26</td><td><strong>Firefires</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Double fire / fire-on-fire mechanic. Possibly places fire marks (like Fiery Flare) and simultaneously deals direct damage. Could interact with existing fire mark tokens. No wiki description found.</td></tr><tr><td>27</td><td><strong>Scorpio Sting</strong></td><td>Fire or Nature</td><td>Offense</td><td>[INFERRED] "Scorpio Sting" — scorpion = venom/poison. Likely applies a poison/bleed DoT on hit, similar to bleed token mechanic but possibly higher tick damage. Pairs with Jane's DoT theme. No wiki description found.</td></tr><tr><td>28</td><td><strong>Massive Heal</strong></td><td>Nature</td><td>Defense</td><td>[WIKI PARTIAL] Elite/Epic Nature Heal. Very large HP restoration. No special mechanic confirmed.</td></tr><tr><td>29</td><td><strong>Massive Shield</strong></td><td>Nature</td><td>Defense</td><td>[WIKI PARTIAL] Elite Nature Shield. Very large block value. No special mechanic confirmed.</td></tr></tbody></table>
+<hr>
+<h3>LEGENDARY / Ultimate (rarity 3)</h3>
+<table class="md-table"><thead><tr><th>#</th><th>Spell</th><th>Element</th><th>Type</th><th>Mechanic / Ability</th></tr></thead><tbody><tr><td>30</td><td><strong>Ultimate Scorch</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Legendary version of Scorch. Larger fire damage + larger burn DoT. Possibly multi-hit (BurstCount). No wiki description found.</td></tr><tr><td>31</td><td><strong>Dragon's Breath</strong></td><td>Fire</td><td>Offense</td><td>[WIKI PARTIAL] Legendary, Fire. Jane's ultimate. Confirmed from Facebook promo: "can comprehensively eliminate opposing forces on the playing field." Likely a massive channeled or sustained fire attack — could be a very high-damage sweeping fire beam (IsChanneled: 1) or burst volley. Note: if it sweeps both sides it would be AoE — flag for SpellBattle (map to Instant).</td></tr><tr><td>32</td><td><strong>Fire Arrow x8</strong></td><td>Fire</td><td>Offense</td><td>[INFERRED] Fires 8 Fire Arrows in sequence (BurstCount: 8), applying 8 bleed tokens. Maximum single-cast DoT stacking in Jane's kit.</td></tr><tr><td>33</td><td><strong>Poison Arrow</strong></td><td>Nature</td><td>Offense</td><td>[INFERRED] Nature element, "Poison" = DoT. Likely applies a poison token (higher damage over time than bleed). The nature-element arrow contrasts with Jane's fire arrows. No wiki description found.</td></tr><tr><td>34</td><td><strong>Rewind Aura</strong></td><td>Nature or Light</td><td>Support</td><td>[INFERRED] "Rewind" = reversal. Possibly undoes recent damage (heals equal to last damage taken, like Nature's Revenge but defensive), OR reverses one opponent's playfield state (removes recently played spells). Could also restore Jane's HP to a previous checkpoint. No wiki description found — most unclear spell in Jane's kit.</td></tr><tr><td>35</td><td><strong>Fire Ram</strong></td><td>Fire</td><td>Offense/Break</td><td>[WIKI] Legendary, Fire. "<strong>Destroys a shield spell on the opponent's playfield.</strong>" Shield-breaking legendary attack — Jane sends a fire ram to smash the opponent's active shield. Map to BreaksShield: 1.</td></tr></tbody></table>
+<hr>
+<h2>Shared spells (appear in both decks)</h2>
+<table class="md-table"><thead><tr><th>Spell</th><th>Confirmed rarity</th><th>Mechanic</th></tr></thead><tbody><tr><td>Fireball</td><td>Basic (both)</td><td>Standard fire projectile damage</td></tr><tr><td>Small Heal</td><td>Basic (both)</td><td>Small HP restoration</td></tr><tr><td>Small Shield</td><td>Basic (both)</td><td>Small shield block</td></tr><tr><td>Big Heal</td><td>Rare (Jane) / Epic (Zenron)</td><td>Large HP restoration</td></tr><tr><td>Big Shield</td><td>Rare (Jane) / Epic (Zenron)</td><td>Large shield block</td></tr><tr><td>Massive Heal</td><td>Epic (Jane) / Legendary (Zenron)</td><td>Very large HP restoration</td></tr><tr><td>Massive Shield</td><td>Epic (Jane) / Legendary (Zenron)</td><td>Very large shield block</td></tr></tbody></table>
+<hr>
+<h2>Key mechanics confirmed from wiki (summary)</h2>
+<h3>"Overheated" modifier (Zenron only)</h3>
+<p>The "Overheated" prefix appears on 4 of Zenron's spells: Overheated Fireball, Overheated Vaporize, Overheated Finelance, Overheated Double Fireball. The wiki page for these variants was inaccessible. Based on the name and Zenron's fire-focused identity, this likely triggers when Zenron has a large number of fire elements active on the board, OR when Zenron is at or above a fire-count threshold. Effect is probably a damage multiplier or additional DoT. <strong>Mark all Overheated descriptions as [INFERRED] in assets.</strong></p>
+<h3>"Break Power" spell category</h3>
+<p>Confirmed via wiki snippets: Break Power spells in SSH can bypass or destroy shields, tokens, or spells. Pyroblast (ignores shields), Token Snipe (destroys tokens), Nature's Revenge (retaliatory damage), Fire Ram (destroys shield spell), Firebat and Paralysing Dart (destroy opponent's spell on playfield) all have Break Power characteristics.</p>
+<h3>Playfield destruction spells (Jane's specialty)</h3>
+<p>Jane has multiple spells that remove/destroy things on the opponent's playfield:</p>
+<ul><li>Firebat: destroys a spell</li><li>Paralysing Dart: destroys a spell (+ possible slow)</li><li>Extinguish: removes fire marks or fire spells [INFERRED]</li><li>Fire Ram (Legendary): destroys a shield spell [WIKI]</li></ul>
+<hr>
+<h2>Mapping notes for SpellBattle</h2>
+<table class="md-table"><thead><tr><th>Issue</th><th>Decision</th></tr></thead><tbody><tr><td>Fire Mark Token mechanic</td><td>Not directly representable in SpellBattle's SpawnDoTToken; closest is a conditional on-hit effect. Document in Description field only.</td></tr><tr><td>Rage Token (Fire Rage)</td><td>Not representable. Flag as SpawnsDoTToken: 0 but note in Description.</td></tr><tr><td>Weakness Token (Earth spells)</td><td>Not in Zenron/Jane decks; irrelevant here.</td></tr><tr><td>Dragon's Breath (possible AoE)</td><td>If it hits both sides, map Delivery to Instant (1) and note "[AoE — mapped to Instant, SpellBattle has no AoE]".</td></tr><tr><td>Blazing Spiral (Coming Soon)</td><td>No mechanic data. Use placeholder values, note "Coming Soon" in Description.</td></tr><tr><td>"Overheated" variant spells</td><td>No trigger condition confirmed. Treat as higher-power variant of the base spell in .asset, note "[Overheated mechanic unclear — placeholder values used]".</td></tr><tr><td>Rewind Aura</td><td>No wiki data at all. Highest-uncertainty spell in this dataset.</td></tr><tr><td>Fire Beam (channeled)</td><td>Map to Delivery 4 (Beam placeholder) and IsChanneled: 1.</td></tr><tr><td>Regeneration</td><td>If it's truly heal-over-time, closest SpellBattle representation is SpawnsDoTToken on self — not currently supported. Document in Description only.</td></tr><tr><td>Spider Web / Root Braid (slow debuff)</td><td>SpellBattle has no slow mechanic. Note in Description, no special flag.</td></tr></tbody></table>
+<hr>
+<h2>Sources</h2>
+<ul><li><a href="https://super-spell-heroes.fandom.com/wiki/Super_Spell_Heroes_Wiki" target="_blank" rel="noopener">Super Spell Heroes Wiki — Main</a></li><li><a href="https://super-spell-heroes.fandom.com/wiki/Zenron,_The_Sorcerer" target="_blank" rel="noopener">Zenron, The Sorcerer — Wiki Page</a> <em>(returned 402 on direct fetch; data from Google snippet only)</em></li><li><a href="https://super-spell-heroes.fandom.com/wiki/Jane,_the_Witch" target="_blank" rel="noopener">Jane, the Witch — Wiki Page</a> <em>(returned 402 on direct fetch; data from Google snippet only)</em></li><li><a href="https://super-spell-heroes.fandom.com/wiki/Fire_Arrow" target="_blank" rel="noopener">Fire Arrow — Wiki Page</a></li><li><a href="https://super-spell-heroes.fandom.com/wiki/Fire_Rage" target="_blank" rel="noopener">Fire Rage — Wiki Page</a></li><li><a href="https://super-spell-heroes.fandom.com/wiki/Nature's_Revenge" target="_blank" rel="noopener">Nature's Revenge — Wiki Page</a></li><li><a href="https://super-spell-heroes.fandom.com/wiki/Lava_Morph" target="_blank" rel="noopener">Lava Morph — Wiki Page</a></li><li><a href="https://super-spell-heroes.fandom.com/wiki/Healing_Shield" target="_blank" rel="noopener">Healing Shield — Wiki Page</a></li><li><a href="https://super-spell-heroes.fandom.com/wiki/Cloning" target="_blank" rel="noopener">Cloning — Wiki Page</a></li><li><a href="https://super-spell-heroes.fandom.com/wiki/Fire_Ram" target="_blank" rel="noopener">Fire Ram — Wiki Page</a></li><li><a href="https://super-spell-heroes.fandom.com/wiki/Vaporize" target="_blank" rel="noopener">Vaporize — Wiki Page</a></li><li><a href="https://super-spell-heroes.fandom.com/wiki/Fiery_Flare" target="_blank" rel="noopener">Fiery Flare — Wiki Page</a></li><li><a href="https://super-spell-heroes.fandom.com/wiki/Blazing_Spiral" target="_blank" rel="noopener">Blazing Spiral — Wiki Page</a> <em>(Coming Soon — no description)</em></li><li><a href="https://super-spell-heroes.fandom.com/wiki/Token_Snipe" target="_blank" rel="noopener">Token Snipe — Wiki Page</a></li><li><a href="https://super-spell-heroes.fandom.com/wiki/Cancer_Fire_Marks_Deck" target="_blank" rel="noopener">Cancer Fire Marks Deck — Strategy Page</a></li><li><a href="https://super-spell-heroes.fandom.com/wiki/Big_Heal" target="_blank" rel="noopener">Big Heal — Wiki Page</a></li><li><a href="https://super-spell-heroes.fandom.com/wiki/Massive_Heal" target="_blank" rel="noopener">Massive Heal — Wiki Page</a></li><li><a href="https://super-spell-heroes.fandom.com/wiki/Massive_Shield" target="_blank" rel="noopener">Massive Shield — Wiki Page</a></li><li><a href="https://www.facebook.com/superspellheroes/posts/meet-jane-the-witch-the-second-hero-that-you-can-unlock-in-super-spell-heroes-ja/1092273857589189/" target="_blank" rel="noopener">Super Spell Heroes Facebook — Jane intro post</a></li><li><a href="https://gamerwelfare.com/2021/01/25/super-spell-heroes-tier-list/" target="_blank" rel="noopener">Super Spell Heroes Tier List — GamerWelfare</a></li></ul></article><article class="doc" id="ssh-wiki"><h2>Super Spell Heroes — Research Reference</h2><p class="doc-meta">01 Jul 2026 · <a href="../docs/research/ssh-wiki.md" target="_blank" rel="noopener">source file</a></p><p><strong>Date scraped:</strong> 2026-06-11 (initial); updated 2026-07-01 (Zenron + Jane deck research) <strong>Source:</strong> https://super-spell-heroes.fandom.com/wiki/Super_Spell_Heroes_Wiki <strong>Access note:</strong> Fandom wiki returns HTTP 402 (blocked). All data gathered from Google search snippets, meta-descriptions, gamerwelfare.com, startup.info, and Facebook posts from the official Super Spell Heroes account. Numeric stats (exact damage, HP values) are not directly confirmed from wiki pages. Stats marked "(verified)" were extracted from Fandom wiki page snippets in Google search results. Stats marked "(estimated)" are reasoned guesses based on context.</p>
+<hr>
+<h2>Zenron Deck</h2>
+<p><strong>Hero:</strong> Zenron, the Sorcerer <strong>Elements (SSH):</strong> Fire + Light (per task spec / original import) — SEE NOTE BELOW <strong>Signature:</strong> Fire Marks — 25% proc chance on hit for 50 bonus damage; fire mark tokens last ~10 seconds, reset every time one of your attacks hits the enemy</p>
+<h3>ELEMENT DISCREPANCY — REQUIRES MATOUS REVIEW</h3>
+<p>Multiple independent sources (Fandom wiki snippet via Google, startup.info) state:</p>
+<blockquote>"Zenron is the first playable hero and is pretty balanced, counting on massive Fire attacks to win the game while protecting himself with <strong>Nature spells</strong>." "Zenron's elements are fire and nature."</blockquote>
+<p>However:</p>
+<ul><li>The task spec and existing SSH_Zenron.asset say ElementB=2 (Light)</li><li>The Cancer Fire Marks Deck (Zenron's signature archetype) includes <strong>Moonfire</strong>, which is a Light spell. A hero who uses Fire+Nature would not have access to Moonfire.</li><li>Lua (the Voodoo Priest) is confirmed as Nature+Light and also runs Ghost Token strategies. If Zenron were Fire+Nature, there would be no Fire+Light hero.</li></ul>
+<p><strong>Current asset keeps ElementB=2 (Light) per task instruction.</strong> If future wiki access confirms Fire+Nature, change ElementB to 1 and swap Light-element deck spells for Nature ones.</p>
+<h3>Zenron Spell Pool (Fire + Light spells available to him)</h3>
+<table class="md-table"><thead><tr><th>#</th><th>Spell</th><th>Element</th><th>Rarity</th><th>Type</th><th>Delivery</th><th>Key Stats / Effects</th><th>Confidence</th></tr></thead><tbody><tr><td>1</td><td>Vaporize</td><td>Fire</td><td>Basic</td><td>Damage</td><td>StraightProjectile</td><td>2 hits, Slow speed</td><td>verified</td></tr><tr><td>2</td><td>Fire Arrow</td><td>Fire</td><td>Basic</td><td>Damage</td><td>StraightProjectile</td><td>Fast; on hit: bleed token deals 50 DoT</td><td>verified</td></tr><tr><td>3</td><td>Token Snipe</td><td>Fire</td><td>Basic</td><td>Break Power</td><td>StraightProjectile</td><td>Fast; destroys 1 opponent token, then deals damage</td><td>verified</td></tr><tr><td>4</td><td>Glass Spear</td><td>Light</td><td>Basic</td><td>Damage</td><td>StraightProjectile</td><td>Fast speed</td><td>verified</td></tr><tr><td>5</td><td>Moonfire</td><td>Light</td><td>Basic</td><td>Damage</td><td>StraightProjectile</td><td>2 hits, Fast; on hit: gives caster 1 light mana</td><td>verified</td></tr><tr><td>6</td><td>Noble Guard</td><td>Light</td><td>Basic</td><td>Shield</td><td>Instant</td><td>Light shield</td><td>estimated</td></tr><tr><td>7</td><td>Fire Ram</td><td>Fire</td><td>Advanced</td><td>Break Power</td><td>StraightProjectile</td><td>Destroys opponent shield spell on their playfield</td><td>verified</td></tr><tr><td>8</td><td>Magma Flare</td><td>Fire</td><td>Advanced</td><td>Damage</td><td>ArcProjectile</td><td>Spawns fire mark token on opponent; tokens last ~10s, reset on hit</td><td>verified (partial)</td></tr><tr><td>9</td><td>Burning Scroll</td><td>Fire</td><td>Advanced</td><td>Support</td><td>Instant</td><td>Multiplies number of Magma Flares on your playfield</td><td>verified</td></tr><tr><td>10</td><td>Fiery Flare</td><td>Fire</td><td>Elite</td><td>Damage</td><td>StraightProjectile</td><td>Fast; gives opponent 2 fire mark tokens (25% proc, 50 dmg each)</td><td>verified</td></tr><tr><td>11</td><td>Pyroblast</td><td>Fire</td><td>Elite</td><td>Damage</td><td>ArcProjectile</td><td>High damage, BreaksShield, resets fire mark token timers</td><td>verified (partial)</td></tr></tbody></table>
+<h3>Zenron's Estimated Starting Deck (8 spells)</h3>
+<p>In rarity order (Basic → Advanced → Elite; 1 Ultimate allowed per SSH rules):</p>
+<ol><li>Vaporize (Basic Fire)</li><li>Fire Arrow (Basic Fire)</li><li>Token Snipe (Basic Fire)</li><li>Moonfire (Basic Light)</li><li>Fire Ram (Advanced Fire)</li><li>Magma Flare (Advanced Fire)</li><li>Burning Scroll (Advanced Fire)</li><li>Fiery Flare (Elite Fire)</li></ol>
+<p><strong>Cancer Fire Marks advanced deck</strong> (Zenron's signature archetype, community-documented): Adds Pyroblast (Elite Fire) and possibly swaps out Token Snipe or a basic spell for deeper Fire Marks synergy.</p>
+<hr>
+<h2>Jane Deck</h2>
+<p><strong>Hero:</strong> Jane, the Witch <strong>Elements (SSH):</strong> Fire + Nature (confirmed by multiple sources and task spec) <strong>Signature:</strong> Bleed / DoT — Fire Arrow on hit gives opponent a bleed token dealing 50 damage over time. Rapid fire attack + removal fire spells + Nature defence.</p>
+<h3>Jane Spell Pool (Fire + Nature spells available to her)</h3>
+<table class="md-table"><thead><tr><th>#</th><th>Spell</th><th>Element</th><th>Rarity</th><th>Type</th><th>Delivery</th><th>Key Stats / Effects</th><th>Confidence</th></tr></thead><tbody><tr><td>1</td><td>Fire Arrow</td><td>Fire</td><td>Basic</td><td>Damage</td><td>StraightProjectile</td><td>Fast; on hit: bleed token deals 50 DoT total</td><td>verified</td></tr><tr><td>2</td><td>Vaporize</td><td>Fire</td><td>Basic</td><td>Damage</td><td>StraightProjectile</td><td>2 hits, Slow</td><td>verified</td></tr><tr><td>3</td><td>Token Snipe</td><td>Fire</td><td>Basic</td><td>Break Power</td><td>StraightProjectile</td><td>Fast; destroys 1 opponent token + damage</td><td>verified</td></tr><tr><td>4</td><td>Protection Ritual</td><td>Nature</td><td>Advanced</td><td>Shield</td><td>Instant</td><td>Costs 50% of remaining energy on cast</td><td>verified</td></tr><tr><td>5</td><td>Big Heal</td><td>Nature</td><td>Advanced</td><td>Heal</td><td>Instant</td><td>Moderate heal</td><td>verified (type/rarity only)</td></tr><tr><td>6</td><td>Fire Phoenix</td><td>Fire</td><td>Advanced</td><td>Damage</td><td>StraightProjectile</td><td>Jane's signature recurring spell; every successful hit returns it at the next tier up, escalating into a game-sweeping attack</td><td>verified (Jane specific)</td></tr><tr><td>7</td><td>Nature's Revenge</td><td>Nature</td><td>Elite</td><td>Break Power</td><td>StraightProjectile</td><td>Fast; deals damage equal to the last hit received</td><td>verified</td></tr><tr><td>8</td><td>Dragon's Breath</td><td>Fire</td><td>Ultimate</td><td>Damage</td><td>Instant</td><td>Jane's Ultimate; wipes opponent's entire battlefield + massive damage [AoE — mapped to Instant in SpellBattle]</td><td>verified (existence + type)</td></tr></tbody></table>
+<h3>Jane's Estimated Starting Deck (8 spells)</h3>
+<p>In rarity order:</p>
+<ol><li>Fire Arrow (Basic Fire) — core mechanic</li><li>Vaporize (Basic Fire)</li><li>Token Snipe (Basic Fire)</li><li>Protection Ritual (Advanced Nature)</li><li>Big Heal (Advanced Nature)</li><li>Fire Phoenix (Advanced Fire)</li><li>Nature's Revenge (Elite Nature)</li><li>Dragon's Breath (Ultimate Fire)</li></ol>
+<p><strong>Arrow variant:</strong> Jane with Fire Arrow multishot is specifically noted as a hard counter to Cancer Fire Marks decks.</p>
+<hr>
+<h2>Heroes</h2>
+<table class="md-table"><thead><tr><th>Name</th><th>Elements (SSH)</th><th>Mapped Elements (SpellBattle)</th><th>Signature Mechanic</th><th>Notes</th></tr></thead><tbody><tr><td>Zenron</td><td>Fire + Light*</td><td>Fire(0) + Light(2)*</td><td>Fire Marks — proc 50 dmg on 25% chance when spells hit</td><td>*DISPUTED — wiki says Fire+Nature, see Zenron Deck section</td></tr><tr><td>Jane</td><td>Fire + Nature</td><td>Fire(0) + Nature(1)</td><td>Bleed — DoT via Fire Arrow; rapid fire + removal playstyle</td><td>Second hero (first unlockable)</td></tr><tr><td>Thoben</td><td>Nature/Earth</td><td>Nature(1) mono</td><td>Life Cocoon — temporarily extends max HP; GaiaHeal channeled full heal</td><td>High HP, sustain archetype</td></tr><tr><td>Tierra</td><td>Earth</td><td>Nature(1) mono</td><td>Weakness Tokens — self-places debuff tokens to amplify Earth spell damage</td><td>Earth tank</td></tr><tr><td>Myris</td><td>Nature + Fire</td><td>Nature(1) + Fire(0)</td><td>Venom/Bleed DoT; Nature+Fire combo synergy</td><td></td></tr><tr><td>Asgard</td><td>Light mono</td><td>Light(2) mono</td><td>Chi Block — +25% power; Guardian playstyle, heavy shields</td><td></td></tr><tr><td>Van Raven</td><td>Earth + Fire</td><td>Nature(1) + Fire(0)</td><td>Hunter Tokens + Fire Rifle — trap then snipe; Fire Rifle is ultimate</td><td>Ranger archetype</td></tr><tr><td>Ray</td><td>Earth + Light</td><td>Nature(1) + Light(2)</td><td>First Strike — double damage if cast before opponent's first spell</td><td>Duelist; high speed</td></tr><tr><td>Lua</td><td>Nature + Light</td><td>Nature(1) + Light(2)</td><td>Ghost Tokens — permanent when adjacent; long-game passive damage</td><td>CORRECTED: was Light+Fire in original import; confirmed Nature+Light</td></tr><tr><td>Ra'ju</td><td>Water</td><td>Light(2) proxy</td><td>Ice Token accumulation — Ice Shot scales with tokens; Ice Storm detonates all</td><td>Water mapped to Light=2</td></tr></tbody></table>
+<p><strong>Note on Pom:</strong> Pom appears in some SSH references as a character but was not confirmed as a playable hero with full spell kit. Not included as a hero asset.</p>
+<hr>
+<h2>Spells by Element</h2>
+<h3>Fire Spells</h3>
+<table class="md-table"><thead><tr><th>Name</th><th>SSH Type</th><th>Rarity</th><th>SpellBattle Mapped</th><th>Delivery</th><th>Key Effects</th><th>Notes</th><th>Asset</th></tr></thead><tbody><tr><td>Vaporize</td><td>Damage</td><td>Basic(0)</td><td>SpellType=0</td><td>Straight(2)</td><td>BurstCount=2 (2 hits), Slow speed</td><td>(verified)</td><td>SSH_Vaporize</td></tr><tr><td>Fire Arrow</td><td>Damage</td><td>Basic(0)</td><td>SpellType=0</td><td>Straight(2)</td><td>Fast; bleed token on hit: 50 DoT total</td><td>(verified)</td><td>SSH_FireArrow</td></tr><tr><td>Token Snipe</td><td>Break Power</td><td>Basic(0)</td><td>SpellType=0</td><td>Straight(2)</td><td>Fast; destroys 1 opponent token then deals damage; BreaksShield=0, sets token</td><td>(verified)</td><td>SSH_TokenSnipe</td></tr><tr><td>Fire Ram</td><td>Break Power</td><td>Advanced(1)</td><td>SpellType=0</td><td>Straight(2)</td><td>Destroys opponent shield spell on their playfield; BreaksShield=1</td><td>(verified)</td><td>SSH_FireRam</td></tr><tr><td>Fire Rage</td><td>Resistance</td><td>Advanced(1)</td><td>SpellType=2</td><td>Instant(1)</td><td>Channeled over-time; grants rage token to caster when it expires</td><td>(verified)</td><td>SSH_FireRage</td></tr><tr><td>Magma Flare</td><td>Damage</td><td>Advanced(1)</td><td>SpellType=0</td><td>Arc(3)</td><td>Spawns fire mark token; tokens last ~10s, reset on each hit</td><td>(verified partial)</td><td>SSH_MagmaFlare</td></tr><tr><td>Burning Scroll</td><td>Support</td><td>Advanced(1)</td><td>SpellType=2</td><td>Instant(1)</td><td>Multiplies Magma Flare count on your playfield</td><td>(verified)</td><td>SSH_BurningScroll</td></tr><tr><td>Fire Phoenix</td><td>Damage</td><td>Advanced(1)</td><td>SpellType=0</td><td>Straight(2)</td><td>Jane-specific; escalates to next tier on successful hit; game-sweeping at full escalation</td><td>(verified existence)</td><td>SSH_FirePhoenix</td></tr><tr><td>Fiery Flare</td><td>Damage</td><td>Elite(2)</td><td>SpellType=0</td><td>Straight(2)</td><td>Fast; gives opponent 2 fire mark tokens (25% proc, 50 dmg each)</td><td>(verified)</td><td>SSH_FieryFlare</td></tr><tr><td>Pyroblast</td><td>Damage</td><td>Elite(2)</td><td>SpellType=0</td><td>Arc(3)</td><td>High dmg; BreaksShield; resets fire mark token timers</td><td>(verified partial)</td><td>SSH_Pyroblast</td></tr><tr><td>Fire Rifle</td><td>Damage</td><td>Elite(2)</td><td>SpellType=0</td><td>Straight(2)</td><td>Van Raven signature, very fast</td><td>estimated</td><td>SSH_FireRifle</td></tr><tr><td>Fire Prism</td><td>Damage</td><td>Advanced(1)</td><td>SpellType=0</td><td>Straight(2)</td><td>Prism/ricochet mechanic</td><td>estimated</td><td>SSH_FirePrism</td></tr><tr><td>Dragon's Breath</td><td>Damage</td><td>Ultimate(3)</td><td>SpellType=0</td><td>Instant(1)</td><td>Jane's Ultimate; wipes entire opponent battlefield; massive damage; [AoE → Instant]</td><td>(verified existence)</td><td>SSH_DragonBreath</td></tr></tbody></table>
+<h3>Nature / Earth Spells</h3>
+<table class="md-table"><thead><tr><th>Name</th><th>SSH Type</th><th>Element</th><th>Rarity</th><th>SpellBattle Mapped</th><th>Delivery</th><th>Key Effects</th><th>Notes</th><th>Asset</th></tr></thead><tbody><tr><td>Big Heal</td><td>Heal</td><td>Nature</td><td>Advanced(1)</td><td>SpellType=2</td><td>Instant(1)</td><td>Moderate heal</td><td>(verified type+rarity)</td><td>SSH_BigHeal</td></tr><tr><td>Protection Ritual</td><td>Shield</td><td>Nature</td><td>Advanced(1)</td><td>SpellType=1</td><td>Instant(1)</td><td>Costs 50% of remaining energy on cast</td><td>(verified)</td><td>SSH_ProtectionRitual</td></tr><tr><td>Massive Shield</td><td>Shield</td><td>Nature</td><td>Elite(2)</td><td>SpellType=1</td><td>Instant(1)</td><td>Large shield</td><td>estimated</td><td>SSH_MassiveShield</td></tr><tr><td>Healing Shield</td><td>Shield</td><td>Nature</td><td>Elite(2)</td><td>SpellType=1</td><td>Instant(1)</td><td>Restores energy on block</td><td>estimated</td><td>SSH_HealingShield</td></tr><tr><td>Massive Heal</td><td>Heal</td><td>Nature</td><td>Elite(2)</td><td>SpellType=2</td><td>Instant(1)</td><td>Large heal</td><td>estimated</td><td>SSH_MassiveHeal</td></tr><tr><td>Nature's Revenge</td><td>Break Power</td><td>Nature</td><td>Elite(2)</td><td>SpellType=0</td><td>Straight(2)</td><td>Fast; BreaksShield; deals damage equal to last hit received</td><td>(verified)</td><td>SSH_NaturesRevenge</td></tr><tr><td>Toxic Shield</td><td>Shield+DoT</td><td>Nature</td><td>Ultimate(3)</td><td>SpellType=1</td><td>Instant(1)</td><td>Shield with DoT on attacker</td><td>estimated</td><td>SSH_ToxicShield</td></tr><tr><td>Corrosion</td><td>Resistance</td><td>Nature</td><td>Ultimate(3)</td><td>SpellType=2</td><td>Instant(1)</td><td>Board-wide debuff, AoE→Instant</td><td>estimated</td><td>SSH_Corrosion</td></tr><tr><td>Gaia Heal</td><td>Heal</td><td>Earth/Water</td><td>Elite(2)</td><td>SpellType=1</td><td>Instant(1)</td><td>Channeled full heal; IsChanneled=1</td><td>estimated</td><td>SSH_GaiaHeal</td></tr><tr><td>Life Cocoon</td><td>Shield</td><td>Nature</td><td>Elite(2)</td><td>SpellType=1</td><td>Instant(1)</td><td>Extends max HP — no direct SpellBattle field</td><td>estimated</td><td>SSH_LifeCocoon</td></tr><tr><td>Rock Blast</td><td>Damage</td><td>Earth</td><td>Basic(0)</td><td>SpellType=0</td><td>Straight(2)</td><td>Weakness Token</td><td>estimated</td><td>SSH_RockBlast</td></tr><tr><td>Rockslide</td><td>Damage</td><td>Earth</td><td>Advanced(1)</td><td>SpellType=0</td><td>Arc(3)</td><td>Slow, Weakness Token</td><td>estimated</td><td>SSH_Rockslide</td></tr><tr><td>Iron Claw</td><td>Damage</td><td>Earth</td><td>Elite(2)</td><td>SpellType=0</td><td>Straight(2)</td><td>Weakness Token</td><td>estimated</td><td>SSH_IronClaw</td></tr><tr><td>Impale</td><td>Damage</td><td>Earth</td><td>Elite(2)</td><td>SpellType=0</td><td>Straight(2)</td><td>Destroys bottom row tiles + Weakness Token</td><td>estimated</td><td>SSH_Impale</td></tr><tr><td>Stonefall</td><td>Damage</td><td>Earth</td><td>Ultimate(3)</td><td>SpellType=0</td><td>Instant(1)</td><td>350 dmg, BreaksShield, AoE board-wipe</td><td>estimated</td><td>SSH_Stonefall</td></tr><tr><td>Hunter Trap</td><td>Support</td><td>Earth</td><td>Advanced(1)</td><td>SpellType=2</td><td>Instant(1)</td><td>Van Raven — places Hunter Tokens (trap on opponent's board)</td><td>estimated</td><td>SSH_HunterTrap</td></tr><tr><td>First Strike</td><td>Damage</td><td>Earth</td><td>Basic(0)</td><td>SpellType=0</td><td>Straight(2)</td><td>Ray — double dmg if cast first</td><td>estimated</td><td>SSH_FirstStrike</td></tr><tr><td>Quick Draw</td><td>Damage</td><td>Earth</td><td>Advanced(1)</td><td>SpellType=0</td><td>Straight(2)</td><td>Ray — First Strike conditional at higher tier</td><td>estimated</td><td>SSH_QuickDraw</td></tr><tr><td>Nature Prism</td><td>Damage</td><td>Nature</td><td>Advanced(1)</td><td>SpellType=0</td><td>Straight(2)</td><td>Prism/ricochet</td><td>estimated</td><td>SSH_NaturePrism</td></tr></tbody></table>
+<h3>Light Spells</h3>
+<table class="md-table"><thead><tr><th>Name</th><th>SSH Type</th><th>Rarity</th><th>SpellBattle Mapped</th><th>Delivery</th><th>Key Effects</th><th>Notes</th><th>Asset</th></tr></thead><tbody><tr><td>Ancestral Bolt</td><td>Damage</td><td>Basic(0)</td><td>SpellType=0</td><td>Straight(2)</td><td>Standard projectile</td><td>estimated</td><td>SSH_AncestralBolt</td></tr><tr><td>Chi Slap</td><td>Damage</td><td>Basic(0)</td><td>SpellType=0</td><td>Instant(1)</td><td>Melee-range instant</td><td>estimated</td><td>SSH_ChiSlap</td></tr><tr><td>Divine Glint</td><td>Damage</td><td>Basic(0)</td><td>SpellType=0</td><td>Straight(2)</td><td></td><td>estimated</td><td>SSH_DivineGlint</td></tr><tr><td>Divine Guard</td><td>Shield</td><td>Basic(0)</td><td>SpellType=1</td><td>Instant(1)</td><td></td><td>estimated</td><td>SSH_DivineGuard</td></tr><tr><td>Enlightenment</td><td>Support</td><td>Basic(0)</td><td>SpellType=2</td><td>Instant(1)</td><td>(wiki: "Enlightment")</td><td>estimated</td><td>SSH_Enlightenment</td></tr><tr><td>Ghost Whisper</td><td>Support</td><td>Basic(0)</td><td>SpellType=2</td><td>Instant(1)</td><td>Places Ghost Tokens</td><td>estimated</td><td>SSH_GhostWhisper</td></tr><tr><td>Glass Spear</td><td>Damage</td><td>Basic(0)</td><td>SpellType=0</td><td>Straight(2)</td><td>Fast speed</td><td>(verified type)</td><td>SSH_GlassSpear</td></tr><tr><td>Light Up</td><td>Support</td><td>Basic(0)</td><td>SpellType=2</td><td>Instant(1)</td><td>Adds light mana</td><td>estimated</td><td>SSH_LightUp</td></tr><tr><td>Moonfire</td><td>Damage</td><td>Basic(0)</td><td>SpellType=0</td><td>Straight(2)</td><td>2 hits, Fast; on hit: gives caster 1 light mana</td><td>(verified)</td><td>SSH_Moonfire</td></tr><tr><td>Noble Guard</td><td>Shield</td><td>Basic(0)</td><td>SpellType=1</td><td>Instant(1)</td><td>Light shield</td><td>estimated</td><td>SSH_NobleGuard</td></tr><tr><td>Spectral Ghost</td><td>Damage</td><td>Basic(0)</td><td>SpellType=0</td><td>Straight(2)</td><td></td><td>estimated</td><td>SSH_SpectralGhost</td></tr><tr><td>Spiritual Circle</td><td>Shield</td><td>Basic(0)</td><td>SpellType=1</td><td>Instant(1)</td><td></td><td>estimated</td><td>SSH_SpiritualCircle</td></tr><tr><td>Spiritual Heal</td><td>Heal</td><td>Basic(0)</td><td>SpellType=2</td><td>Instant(1)</td><td></td><td>estimated</td><td>SSH_SpiritualHeal</td></tr><tr><td>Spiritual Touch</td><td>Support</td><td>Basic(0)</td><td>SpellType=2</td><td>Instant(1)</td><td>Minor heal/support</td><td>estimated</td><td>SSH_SpiritualTouch</td></tr><tr><td>Sun Beam</td><td>Damage</td><td>Basic(0)</td><td>SpellType=0</td><td>Beam(4)</td><td>Beam delivery</td><td>estimated</td><td>SSH_SunBeam</td></tr><tr><td>Ancestral Strike</td><td>Damage</td><td>Advanced(1)</td><td>SpellType=0</td><td>Straight(2)</td><td>Fast; removes mana from opponent's board, gives you light mana</td><td>(verified partial)</td><td>SSH_AncestralStrike</td></tr><tr><td>Blinding Flash</td><td>Damage</td><td>Advanced(1)</td><td>SpellType=0</td><td>Straight(2)</td><td>Fast; Blindness Token</td><td>estimated</td><td>SSH_BlindingFlash</td></tr><tr><td>Chi Punch</td><td>Damage</td><td>Advanced(1)</td><td>SpellType=0</td><td>Straight(2)</td><td>Fast; creates Chi Token (+25% power)</td><td>estimated</td><td>SSH_ChiPunch</td></tr><tr><td>Dawn</td><td>Support</td><td>Advanced(1)</td><td>SpellType=2</td><td>Instant(1)</td><td>Adds light mana</td><td>estimated</td><td>SSH_Dawn</td></tr><tr><td>Earth Prism</td><td>Damage</td><td>Advanced(1)</td><td>SpellType=0</td><td>Straight(2)</td><td>Prism/ricochet</td><td>estimated</td><td>SSH_EarthPrism</td></tr><tr><td>Heroic Guard</td><td>Shield</td><td>Advanced(1)</td><td>SpellType=1</td><td>Instant(1)</td><td></td><td>estimated</td><td>SSH_HeroicGuard</td></tr><tr><td>Light Bomb</td><td>Damage</td><td>Advanced(1)</td><td>SpellType=0</td><td>Arc(3)</td><td>Lofted bomb</td><td>estimated</td><td>SSH_LightBomb</td></tr><tr><td>Light Ghost</td><td>Support</td><td>Advanced(1)</td><td>SpellType=2</td><td>Instant(1)</td><td>Ghost Tokens</td><td>estimated</td><td>SSH_LightGhost</td></tr><tr><td>Light Prism</td><td>Damage</td><td>Advanced(1)</td><td>SpellType=0</td><td>Straight(2)</td><td>Prism/ricochet</td><td>estimated</td><td>SSH_LightPrism</td></tr><tr><td>Liquid Light</td><td>Support</td><td>Advanced(1)</td><td>SpellType=2</td><td>Instant(1)</td><td>Floods board with light</td><td>estimated</td><td>SSH_LiquidLight</td></tr><tr><td>Orb of Light</td><td>Damage</td><td>Advanced(1)</td><td>SpellType=0</td><td>Homing(5)</td><td>Slow-tracking orb</td><td>estimated</td><td>SSH_OrbOfLight</td></tr><tr><td>Overcharge</td><td>Support</td><td>Advanced(1)</td><td>SpellType=2</td><td>Instant(1)</td><td>Overfills charge bar</td><td>estimated</td><td>SSH_Overcharge</td></tr><tr><td>Purify</td><td>Support</td><td>Advanced(1)</td><td>SpellType=2</td><td>Instant(1)</td><td>Removes negative tokens</td><td>estimated</td><td>SSH_Purify</td></tr><tr><td>Sky Guard</td><td>Shield</td><td>Advanced(1)</td><td>SpellType=1</td><td>Instant(1)</td><td></td><td>estimated</td><td>SSH_SkyGuard</td></tr><tr><td>Soul Link</td><td>Support</td><td>Advanced(1)</td><td>SpellType=2</td><td>Instant(1)</td><td>Lightlink Tokens</td><td>estimated</td><td>SSH_SoulLink</td></tr><tr><td>Soul Guard</td><td>Shield</td><td>Advanced(1)</td><td>SpellType=1</td><td>Instant(1)</td><td></td><td>estimated</td><td>SSH_SoulGuard</td></tr><tr><td>Spiritual Cleansing</td><td>Support</td><td>Advanced(1)</td><td>SpellType=2</td><td>Instant(1)</td><td>Cleanses tokens</td><td>estimated</td><td>SSH_SpiritualCleansing</td></tr><tr><td>Sunbath</td><td>Support</td><td>Advanced(1)</td><td>SpellType=2</td><td>Instant(1)</td><td>HP/mana regen over time</td><td>estimated</td><td>SSH_Sunbath</td></tr><tr><td>Ancestral Lightning</td><td>Damage</td><td>Elite(2)</td><td>SpellType=0</td><td>Beam(4)</td><td>Beam</td><td>estimated</td><td>SSH_AncestralLightning</td></tr><tr><td>Angelic Guard</td><td>Shield</td><td>Elite(2)</td><td>SpellType=1</td><td>Instant(1)</td><td>Large shield</td><td>estimated</td><td>SSH_AngelicGuard</td></tr><tr><td>Blessed Aura</td><td>Heal/Support</td><td>Elite(2)</td><td>SpellType=2</td><td>Instant(1)</td><td>Both players get mana — symmetrical</td><td>estimated</td><td>SSH_BlessedAura</td></tr><tr><td>Blinding Angel</td><td>Damage</td><td>Elite(2)</td><td>SpellType=0</td><td>Straight(2)</td><td>Blindness Token</td><td>estimated</td><td>SSH_BlindingAngel</td></tr><tr><td>Elemental Ghost</td><td>Support</td><td>Elite(2)</td><td>SpellType=2</td><td>Instant(1)</td><td>Permanent Ghost Tokens</td><td>estimated</td><td>SSH_ElementalGhost</td></tr><tr><td>Elite Glass Spears</td><td>Damage</td><td>Elite(2)</td><td>SpellType=0</td><td>Straight(2)</td><td>BurstCount=4 (hits 4 times)</td><td>(verified burst count)</td><td>SSH_EliteGlassSpears</td></tr><tr><td>Godhammer</td><td>Damage</td><td>Elite(2)</td><td>SpellType=0</td><td>Arc(3)</td><td>BreaksShield, InterruptsChannels</td><td>estimated</td><td>SSH_Godhammer</td></tr><tr><td>Light Rapier</td><td>Damage</td><td>Elite(2)</td><td>SpellType=0</td><td>Straight(2)</td><td>Very fast cast</td><td>estimated</td><td>SSH_LightRapier</td></tr><tr><td>Power Swipe</td><td>Damage</td><td>Elite(2)</td><td>SpellType=0</td><td>Instant(1)</td><td>BreaksShield, melee</td><td>estimated</td><td>SSH_PowerSwipe</td></tr></tbody></table>
+<h3>Water Spells (mapped to Light=2)</h3>
+<table class="md-table"><thead><tr><th>Name</th><th>SSH Type</th><th>Rarity</th><th>SpellBattle Mapped</th><th>Delivery</th><th>Key Effects</th><th>Notes</th><th>Asset</th></tr></thead><tbody><tr><td>Rain</td><td>Support</td><td>Advanced(1)</td><td>SpellType=2</td><td>Instant(1)</td><td>Adds 6 water tokens to both boards; AoE→Instant</td><td>estimated</td><td>SSH_Rain</td></tr><tr><td>Ice Shot</td><td>Damage</td><td>Advanced(1)</td><td>SpellType=0</td><td>Straight(2)</td><td>Scales with ice token count on opponent's board</td><td>estimated</td><td>SSH_IceShot</td></tr><tr><td>Ice Storm</td><td>Damage</td><td>Ultimate(3)</td><td>SpellType=0</td><td>Instant(1)</td><td>Ra'ju ultimate — detonates all ice tokens; BreaksShield</td><td>estimated</td><td>SSH_IceStorm</td></tr></tbody></table>
+<hr>
+<h2>Mapping Notes</h2>
+<h3>Element mapping</h3>
+<p>SSH has 5 elements; SpellBattle has 3:</p>
+<ul><li>Fire → Fire(0) — direct match</li><li>Nature → Nature(1) — direct match</li><li>Earth → Nature(1) — best fit (both terrain/organic; no Earth enum in SpellBattle)</li><li>Light → Light(2) — direct match</li><li>Water → Light(2) — best fit (no Water enum; Light was least wrong)</li></ul>
+<h3>Rarity mapping</h3>
+<ul><li>SSH Basic → Rarity=0 (Basic)</li><li>SSH Advanced → Rarity=1 (Rare)</li><li>SSH Elite → Rarity=2 (Epic)</li><li>SSH Ultimate → Rarity=3 (Legendary)</li></ul>
+<h3>Spell type mapping</h3>
+<ul><li>SSH Damage → SpellType=0</li><li>SSH Shield → SpellType=1</li><li>SSH Heal → SpellType=2 (Support, closest fit — no Heal enum)</li><li>SSH Resistance (channeled over-time) → SpellType=2 + IsChanneled=1</li><li>SSH Break Power → SpellType=0 + BreaksShield=1 + InterruptsChannels=1</li></ul>
+<h3>Delivery mapping</h3>
+<ul><li>SSH Instant/Melee → Delivery=1 (Instant)</li><li>SSH Projectile (straight) → Delivery=2 (StraightProjectile)</li><li>SSH Projectile (arc/bomb) → Delivery=3 (ArcProjectile)</li><li>SSH Beam → Delivery=4 (Beam, placeholder — not fully implemented)</li><li>SSH Homing/Orb → Delivery=5 (Homing, placeholder — not implemented)</li><li>SSH AoE/board effects → Delivery=1 (Instant, flagged)</li></ul>
+<h3>Mechanics without SpellBattle equivalents</h3>
+<p>All of the following are noted in Description fields and require new fields/systems if ported:</p>
+<ul><li><strong>Weakness Token</strong> — self-placed debuff halving damage, released for bonus on hit</li><li><strong>Fire Mark Token</strong> — 25% proc dealing 50 bonus damage</li><li><strong>Ghost Token</strong> — becomes permanent when adjacent tiles clear; grants passive multi-element damage</li><li><strong>Lightlink Token</strong> — fills charge bar on placement</li><li><strong>Ice Token</strong> — never times out; detonates for damage when Ice Storm is cast</li><li><strong>Hunter Token</strong> — trap on opponent's board; triggers on opponent casting through that tile</li><li><strong>Chi Block</strong> — +25% power buff on next spell</li><li><strong>Blindness Token</strong> — prevents opponent's charge bar from filling</li><li><strong>First Strike</strong> — conditional 2x damage if cast before opponent's first spell that round</li><li><strong>Life Cocoon</strong> — temporarily extends max HP</li><li><strong>Fire Phoenix escalation</strong> — each hit returns it at the next tier; not implementable with current SpellDefinition</li><li><strong>Prism mechanics</strong> — ricochet/split projectiles</li><li><strong>Rage Token</strong> — Fire Rage grants this when its channel expires</li></ul>
+<h3>AoE spells (mapped to Instant per SpellBattle rule)</h3>
+<ul><li>Dragon's Breath (Jane's Ultimate): battlefield wipe mapped to Instant, flagged in Description</li><li>Corrosion: board-wide debuff mapped to Instant, flagged in Description</li><li>Stonefall: board-wipe mapped to Instant, flagged in Description</li><li>Ice Storm: token-detonation mapped to Instant, flagged in Description</li><li>Rain: both-board effect mapped to Instant, flagged in Description</li></ul>
+<h3>Open questions for Matouš</h3>
+<ol><li><strong>Zenron's element</strong>: Research shows Fire+Nature; task spec says Fire+Light. Which is authoritative? (Lua confirmed as Nature+Light, which fills the Nature+Light slot correctly if Zenron is Fire+Light)</li><li><strong>Dragon's Breath delivery</strong>: Mapped to Instant per no-AoE rule. Should it instead be treated as a Beam or channeled sweep?</li><li><strong>Fire Phoenix escalation mechanic</strong>: Requires a "tier-up on hit" system not in SpellDefinition. Flag as "needs new field" or treat as a standard Advanced projectile?</li><li><strong>Lua element correction</strong>: Original import had Lua as Light(2)+Fire(0). Research confirms Nature+Light. SSH_Lua.asset should be updated to ElementA=1 (Nature), ElementB=2 (Light).</li></ol>
+<hr>
+<h2>All .asset Files Created</h2>
+<h3>Spell Assets (72 total — 71 from initial import + Dragon's Breath added 2026-07-01)</h3>
+<pre><code>Assets/ScriptableObjects/SSH/SSH_Vaporize.asset
+Assets/ScriptableObjects/SSH/SSH_FireArrow.asset
+Assets/ScriptableObjects/SSH/SSH_TokenSnipe.asset
+Assets/ScriptableObjects/SSH/SSH_FireRam.asset
+Assets/ScriptableObjects/SSH/SSH_FireRage.asset
+Assets/ScriptableObjects/SSH/SSH_MagmaFlare.asset
+Assets/ScriptableObjects/SSH/SSH_BurningScroll.asset
+Assets/ScriptableObjects/SSH/SSH_FieryFlare.asset
+Assets/ScriptableObjects/SSH/SSH_Pyroblast.asset
+Assets/ScriptableObjects/SSH/SSH_FireRifle.asset
+Assets/ScriptableObjects/SSH/SSH_FirePrism.asset
+Assets/ScriptableObjects/SSH/SSH_FirePhoenix.asset
+Assets/ScriptableObjects/SSH/SSH_DragonBreath.asset  ← NEW 2026-07-01
+Assets/ScriptableObjects/SSH/SSH_BigHeal.asset
+Assets/ScriptableObjects/SSH/SSH_ProtectionRitual.asset
+Assets/ScriptableObjects/SSH/SSH_MassiveShield.asset
+Assets/ScriptableObjects/SSH/SSH_HealingShield.asset
+Assets/ScriptableObjects/SSH/SSH_MassiveHeal.asset
+Assets/ScriptableObjects/SSH/SSH_NaturesRevenge.asset
+Assets/ScriptableObjects/SSH/SSH_ToxicShield.asset
+Assets/ScriptableObjects/SSH/SSH_Corrosion.asset
+Assets/ScriptableObjects/SSH/SSH_GaiaHeal.asset
+Assets/ScriptableObjects/SSH/SSH_LifeCocoon.asset
+Assets/ScriptableObjects/SSH/SSH_RockBlast.asset
+Assets/ScriptableObjects/SSH/SSH_Rockslide.asset
+Assets/ScriptableObjects/SSH/SSH_IronClaw.asset
+Assets/ScriptableObjects/SSH/SSH_Impale.asset
+Assets/ScriptableObjects/SSH/SSH_Stonefall.asset
+Assets/ScriptableObjects/SSH/SSH_HunterTrap.asset
+Assets/ScriptableObjects/SSH/SSH_FirstStrike.asset
+Assets/ScriptableObjects/SSH/SSH_QuickDraw.asset
+Assets/ScriptableObjects/SSH/SSH_NaturePrism.asset
+Assets/ScriptableObjects/SSH/SSH_AncestralBolt.asset
+Assets/ScriptableObjects/SSH/SSH_ChiSlap.asset
+Assets/ScriptableObjects/SSH/SSH_DivineGlint.asset
+Assets/ScriptableObjects/SSH/SSH_DivineGuard.asset
+Assets/ScriptableObjects/SSH/SSH_Enlightenment.asset
+Assets/ScriptableObjects/SSH/SSH_GhostWhisper.asset
+Assets/ScriptableObjects/SSH/SSH_GlassSpear.asset
+Assets/ScriptableObjects/SSH/SSH_LightUp.asset
+Assets/ScriptableObjects/SSH/SSH_Moonfire.asset
+Assets/ScriptableObjects/SSH/SSH_NobleGuard.asset
+Assets/ScriptableObjects/SSH/SSH_SpectralGhost.asset
+Assets/ScriptableObjects/SSH/SSH_SpiritualCircle.asset
+Assets/ScriptableObjects/SSH/SSH_SpiritualHeal.asset
+Assets/ScriptableObjects/SSH/SSH_SpiritualTouch.asset
+Assets/ScriptableObjects/SSH/SSH_SunBeam.asset
+Assets/ScriptableObjects/SSH/SSH_AncestralStrike.asset
+Assets/ScriptableObjects/SSH/SSH_BlindingFlash.asset
+Assets/ScriptableObjects/SSH/SSH_ChiPunch.asset
+Assets/ScriptableObjects/SSH/SSH_Dawn.asset
+Assets/ScriptableObjects/SSH/SSH_EarthPrism.asset
+Assets/ScriptableObjects/SSH/SSH_HeroicGuard.asset
+Assets/ScriptableObjects/SSH/SSH_LightBomb.asset
+Assets/ScriptableObjects/SSH/SSH_LightGhost.asset
+Assets/ScriptableObjects/SSH/SSH_LightPrism.asset
+Assets/ScriptableObjects/SSH/SSH_LiquidLight.asset
+Assets/ScriptableObjects/SSH/SSH_OrbOfLight.asset
+Assets/ScriptableObjects/SSH/SSH_Overcharge.asset
+Assets/ScriptableObjects/SSH/SSH_Purify.asset
+Assets/ScriptableObjects/SSH/SSH_SkyGuard.asset
+Assets/ScriptableObjects/SSH/SSH_SoulLink.asset
+Assets/ScriptableObjects/SSH/SSH_SoulGuard.asset
+Assets/ScriptableObjects/SSH/SSH_SpiritualCleansing.asset
+Assets/ScriptableObjects/SSH/SSH_Sunbath.asset
+Assets/ScriptableObjects/SSH/SSH_AncestralLightning.asset
+Assets/ScriptableObjects/SSH/SSH_AngelicGuard.asset
+Assets/ScriptableObjects/SSH/SSH_BlessedAura.asset
+Assets/ScriptableObjects/SSH/SSH_BlindingAngel.asset
+Assets/ScriptableObjects/SSH/SSH_ElementalGhost.asset
+Assets/ScriptableObjects/SSH/SSH_EliteGlassSpears.asset
+Assets/ScriptableObjects/SSH/SSH_Godhammer.asset
+Assets/ScriptableObjects/SSH/SSH_LightRapier.asset
+Assets/ScriptableObjects/SSH/SSH_PowerSwipe.asset
+Assets/ScriptableObjects/SSH/SSH_Rain.asset
+Assets/ScriptableObjects/SSH/SSH_IceShot.asset
+Assets/ScriptableObjects/SSH/SSH_IceStorm.asset</code></pre>
+<h3>Hero Assets (10 total)</h3>
+<pre><code>Assets/ScriptableObjects/SSH/SSH_Zenron.asset  ← UPDATED 2026-07-01 (Description + deck list)
+Assets/ScriptableObjects/SSH/SSH_Jane.asset    ← UPDATED 2026-07-01 (Description + deck list)
+Assets/ScriptableObjects/SSH/SSH_Thoben.asset
+Assets/ScriptableObjects/SSH/SSH_Tierra.asset
+Assets/ScriptableObjects/SSH/SSH_Myris.asset
+Assets/ScriptableObjects/SSH/SSH_Asgard.asset
+Assets/ScriptableObjects/SSH/SSH_VanRaven.asset
+Assets/ScriptableObjects/SSH/SSH_Ray.asset
+Assets/ScriptableObjects/SSH/SSH_Lua.asset     ← Element correction pending: should be Nature(1)+Light(2), currently Light(2)+Fire(0)
+Assets/ScriptableObjects/SSH/SSH_Raju.asset</code></pre></article><article class="doc" id="vertical-pvp-ui-ux-teardown"><h2>SpellBattle: UI/UX Competitive Intelligence</h2><p class="doc-meta">10 Jun 2026 · <a href="../docs/research/vertical-pvp-ui-ux-teardown.md" target="_blank" rel="noopener">source file</a></p><p><strong>Date:</strong> 2026-06-10 <strong>Scope:</strong> Super Spell Heroes (primary reference), Clash Royale, Hearthstone collection manager, Kingdom Rush Battles, cross-game UX patterns</p>
+<hr>
+<h2>Takeaway First</h2>
+<p>Three patterns repeat across every well-regarded game in this space and are strong enough to call industry defaults:</p>
+<ol><li>A <strong>bottom navigation bar of 3–5 tabs</strong> gives players instant one-tap access to every major mode.</li><li>The <strong>card/spell thumbnail communicates exactly three things</strong> at a glance — cost/tier, element/type, and rarity — through color borders and a fixed numeric badge, never prose.</li><li><strong>Hero selection lives before deck building</strong> in the flow, because the hero defines which cards are legal, and reversing that order forces players to backtrack.</li></ol>
+<p>Every implication for SpellBattle follows from how well these three things are executed within its constraints.</p>
+<hr>
+<h2>1. Super Spell Heroes — Primary Reference</h2>
+<h3>Status and Scale</h3>
+<p>Built by Sviper GmbH (Hamburg), published by Flaregames, fully released August 2018. Estimated lifetime downloads: 500K–1M. Estimated monthly revenue at late-stage peak: ~$5K/month (Sensor Tower estimate). The game is a niche success, not a breakout — the core design is compelling but it could not escape typical F2P churn pressures.</p>
+<h3>Core Loop and Match Design</h3>
+<p>Real-time 1v1 spell-casting duel on a tile board. Each hero is locked to exactly <strong>two elements</strong> (Fire, Nature, Light, Earth, or Water). You drag from a spell icon to matching element tiles to power it up; longer chains = more powerful spells. Spells have cast times, so a slower spell telegraphs itself and can be blocked.</p>
+<p>The opponent's board is visible as a <strong>minimap in the top-left corner</strong> of your screen — you can see which tiles and spells they are highlighting in real time, enabling reads, anticipation, and bluffs. This mutual visibility is the design's most praised feature.</p>
+<p><strong>Deck structure:</strong> Four rarity tiers — Basic, Advanced, Elite, Ultimate. Players carry four spells per tier, up to sixteen total. Only one Ultimate spell is allowed per deck. Heroes are fixed to their two-element pairing.</p>
+<h3>Main Menu Structure</h3>
+<ul><li>Map (zone-based campaign and quest progression)</li><li>Spell/deck management screen</li><li>Achievements (trophy icon)</li><li>Guild functionality</li><li>Leaderboard</li><li>Shop (keys, gems, coins)</li></ul>
+<p>Navigation uses screen sections/tabs rather than a deep menu tree. Praised for "smooth transitions between screens" and general polish. <strong>Critical failure:</strong> nine third-party data-sharing dialogs at first launch — a severe onboarding violation.</p>
+<h3>Deck Builder UI</h3>
+<p>Accessible from the main menu. Players scroll through collected spells, organized by element and tier, and build loadouts per hero. The visual language is colorful and saturated with heavy element color-coding. Cards use element color heavily — red for Fire, green for Nature, etc.</p>
+<p><strong>Known friction:</strong> At least three distinct currency types (coins, gems, runes) with no explanation of their distinct uses. A classic F2P complexity trap.</p>
+<h3>Match UI (reconstructed from reviews and tips)</h3>
+<ul><li>Your full board: lower two-thirds of the portrait screen</li><li>Opponent minimap: top-left corner, scaled down</li><li>HP display: drains to zero (confirmed by review text)</li><li>Hero portrait visible during match</li><li>Spell drag interface: drag from spell tile to element tiles to chain</li></ul>
+<h3>Hero System</h3>
+<p><strong>10 heroes confirmed:</strong> Zenron (Sorcerer), Jane (Witch), Thoben (Monk), Tierra (Huntress), Myris (Mage), Asgard (Golem), Van Raven, Lua, Ra'ju, Ray. Each locked to two of five elements. Hero unlock rate was the most consistently criticized aspect — described as "excruciatingly slow."</p>
+<h3>Player Praise</h3>
+<ul><li>Crisp vibrant graphics, smooth controls, punctual sounds</li><li>Transition animations between battles and power-ups specifically praised</li><li>Minimap opponent visibility praised as tactically rich</li><li>Skill-based: "a canny player can comfortably beat one who has reached a higher level through grinding"</li></ul>
+<h3>Player Complaints</h3>
+<ul><li>Currency: "confusing, no explanation of how the varying monies work"</li><li>Hero unlock rate: "excruciatingly slow"</li><li>Early spell visual variety: "distinct lack of visual variation in early hours"</li><li>Nine consent dialogs at first launch</li><li>Upgrade costs increase steeply post-tutorial</li></ul>
+<hr>
+<h2>2. Clash Royale — Deck Builder Benchmark</h2>
+<h3>Scale</h3>
+<ul><li>662M+ lifetime downloads; $3.3B+ lifetime revenue</li><li>10M monthly active users (average); 2025 revenue: $646.8M (major recovery driven by content updates)</li><li>Day-1 retention: 44%; Day-30 retention: 15%</li><li>Average session: 14 minutes, 4 sessions per day</li></ul>
+<p>This is the category-defining game. Players entering any PvP mobile card game in 2025–2026 carry its interaction patterns as muscle memory.</p>
+<h3>Main Menu Structure</h3>
+<p>Persistent <strong>bottom navigation bar</strong> as the organizational spine:</p>
+<ol><li>Social/Clan (far left)</li><li>Cards (collection + deck builder)</li><li><strong>Battle</strong> (primary CTA — home screen, largest button, center)</li><li>Shop</li><li>Events/Challenges (far right)</li></ol>
+<p>The chest unlock queue sits on the home screen as a persistent row (4 chest slots). Currency and King Level in a top bar. Key principle: <strong>every section is within one tap</strong>. Non-fullscreen popups let you see the underlying screen, preserving orientation. Never more than one level deep.</p>
+<h3>Deck Builder UI</h3>
+<ul><li><strong>Your 8 card slots</strong> displayed at the top (1–2 rows)</li><li><strong>Full card collection</strong> as a scrollable grid below</li><li>Tap a card to slot it; tap a slotted card to swap</li><li>Auto-advances the cursor through empty slots in a single continuous flow</li><li><strong>Filters:</strong> All / Troops / Spells / Buildings (type); sort by Rarity or Elixir Cost</li><li>Cards already in the deck are <strong>grayed out</strong> in the collection — cannot accidentally double-add</li><li><strong>Average Elixir Cost</strong> displayed as a summary stat for the current deck</li><li>Multiple saved deck slots, switchable via numbered tabs</li></ul>
+<h3>Card Thumbnail Anatomy</h3>
+<ul><li>Character/spell art fills the card face</li><li><strong>Elixir cost</strong>: colored circle/badge, bottom-center of card face</li><li><strong>Card name</strong>: below or within the art</li><li><strong>Rarity</strong>: communicated via border/background color — Common (gray), Rare (orange), Epic (purple), Legendary (gold/rainbow), Champion (animated red/gold)</li><li><strong>Level</strong>: small number on the card</li><li><strong>Upgrade progress</strong>: duplicates needed shown as a progress element</li></ul>
+<p>The rarity color system is consistent enough that players sort their collection by color without reading text.</p>
+<h3>Battle UI</h3>
+<ul><li>Opponent's arena at the top half; player's arena at the bottom half</li><li><strong>Player's card hand</strong>: 4 cards at the very bottom, always visible</li><li><strong>Elixir bar</strong>: purple progress bar (0–10), directly above the card hand</li><li><strong>Timer</strong>: center-top, counting down from 3:00</li><li><strong>Tower HP</strong>: shown on each structure in the arena</li><li>Cards deployed by <strong>drag from hand to arena position</strong></li><li>Interaction point lives in the bottom ~20% of screen — reachable with one thumb</li></ul>
+<h3>Key UX Principles</h3>
+<ul><li>Yellow = primary action; Green = secondary positive; Red = notifications</li><li>Shop: never more than 6 items at once (avoids paradox of choice)</li><li>Max 1 notification popup at startup</li><li>All key interface elements within the lower 50% of screen</li></ul>
+<hr>
+<h2>3. Hearthstone Collection Manager — Card Anatomy Reference</h2>
+<p>Not a portrait-mode brawler, but the card anatomy is the reference point for the entire category.</p>
+<h3>Card Thumbnail Anatomy (confirmed)</h3>
+<ul><li><strong>Mana cost</strong>: top-left, inside a blue crystal badge — the largest number on the card face</li><li><strong>Attack</strong> (minions): bottom-left, inside a yellow sword badge</li><li><strong>Health</strong> (minions): bottom-right, inside a red drop badge</li><li><strong>Rarity gem</strong>: bottom-center of portrait, colored by rarity — Common (white/gray), Rare (blue), Epic (purple), Legendary (orange)</li><li><strong>Card name</strong>: centered band across the middle</li><li><strong>Card text</strong>: lower third</li></ul>
+<p>Key principle: <strong>stats "pop outside the frame"</strong> — the mana gem and stat badges break out of the card border so they remain legible even when cards overlap or are partially obscured.</p>
+<h3>Collection Manager</h3>
+<ul><li>Class tabs at the top (icon-based, not text labels)</li><li>Mana cost filter along the bottom (numbered icons 0–10+)</li><li>Cards in deck: outlined in blue; cards not owned: near-invisible gray</li><li>Deck sidebar: card name + mana cost per card, with a mana curve histogram</li></ul>
+<h3>Deck Validity Feedback</h3>
+<p>Clear "deck is ready" state (name field editable, "Done" button activates) vs. incomplete state (slot count shown, cards still needed). No ambiguity. The gold standard for deck completion feedback.</p>
+<hr>
+<h2>4. Kingdom Rush Battles — Typed Slots Reference</h2>
+<p>Useful secondary comparison: portrait-mode PvP card battler in the casual strategy space.</p>
+<h3>Deck Builder Structure</h3>
+<ul><li>Navigate to <strong>Collection tab</strong> (three-card icon, left side of screen)</li><li>Deck has <strong>fixed typed slots</strong>: 1 Hero + 3 Spells + 4 Towers</li><li>Tap a card → select "Use" to add it to the current deck</li><li>"Info" option shows full card description, stats, rank, type, and skills</li><li><strong>Up to 3 saved decks</strong> simultaneously, switchable via numbered tabs (1, 2, 3)</li><li>Sort by rank or rarity</li></ul>
+<p>The typed-slot model (one hero slot, three spell slots, four tower slots) makes deck composition immediately legible: you always know what kind of slot you're filling. This is a direct structural parallel to SpellBattle's hero + tiered spell deck concept.</p>
+<hr>
+<h2>5. Cross-Game Pattern Summary</h2>
+<h3>Main Menu</h3>
+<table class="md-table"><thead><tr><th>Pattern</th><th>Evidence</th></tr></thead><tbody><tr><td>Bottom nav bar, 3–5 tabs</td><td>Clash Royale (5 tabs), Kingdom Rush Battles</td></tr><tr><td>Battle/Play button: largest, most central element</td><td>Clash Royale, Brawl Stars</td></tr><tr><td>Currency and XP level in top bar</td><td>Clash Royale — near universal</td></tr><tr><td>Chest/reward queue visible on home screen</td><td>Clash Royale</td></tr><tr><td>Max 1 startup popup</td><td>Clash Royale design principle; Super Spell Heroes violated this</td></tr><tr><td>Key taps within lower 50% of screen</td><td>Clash Royale UX analysis</td></tr></tbody></table>
+<h3>Deck Builder</h3>
+<table class="md-table"><thead><tr><th>Pattern</th><th>Evidence</th></tr></thead><tbody><tr><td>Current deck slots at top, collection scrollable below</td><td>Clash Royale</td></tr><tr><td>Typed slots (hero slot, spell slots) with visual labels</td><td>Kingdom Rush Battles</td></tr><tr><td>Cards in deck are grayed/dimmed in collection</td><td>Clash Royale, Hearthstone</td></tr><tr><td>Rarity communicated by border/background color</td><td>Clash Royale (5 colors), Hearthstone (4 gem colors)</td></tr><tr><td>Cost/tier badge breaks out of the card frame</td><td>Hearthstone; Clash Royale (elixir badge)</td></tr><tr><td>Deck validity shown by slot fill count, not prose</td><td>Universal</td></tr><tr><td>Filter by type, sort by cost/rarity</td><td>Clash Royale, Hearthstone</td></tr></tbody></table>
+<h3>Card Thumbnail — Minimal Legible Design</h3>
+<p>A card thumbnail must answer three questions without the player reading text:</p>
+<ol><li><strong>What tier/cost is this?</strong> — A single prominent badge or number (mana gem, elixir circle, tier label)</li><li><strong>What element/type is this?</strong> — Color of the card background or border</li><li><strong>How rare is this?</strong> — A distinct rarity color or gem distinct from the element color</li></ol>
+<p>Name and art fill the remaining space. Everything else (description, stats, level) lives in a detail panel, not the thumbnail.</p>
+<h3>Hero Selection</h3>
+<p>In every multi-hero game surveyed:</p>
+<ul><li>Hero selection happens <strong>before</strong> deck building — hero determines which cards are available</li><li>Heroes shown as large portrait-style cards in a horizontal scroll or grid of 2–4 visible at once</li><li>Hero portraits communicate identity immediately through art and color palette</li><li>Locked heroes are visible but grayed out, creating aspiration</li></ul>
+<h3>Battle UI (Portrait 1v1)</h3>
+<ul><li><strong>Opponent at top, player at bottom</strong> — inverting this would confuse players, it is that universal</li><li><strong>Player action area at the bottom</strong> — reachable with one thumb</li><li><strong>Resource bar</strong> (elixir, mana, cast progress) just above the action area</li><li><strong>HP/health</strong> flanking the top (or on structures in the arena)</li><li><strong>Timer</strong> in the center-top, visible but not dominant</li><li>The battle screen is the one screen where UI elements spread across the full portrait height</li></ul>
+<hr>
+<h2>6. Implications for SpellBattle</h2>
+<h3>Hero selection is the first navigation choice, not an afterthought</h3>
+<p>The universal pattern: hero before deck. Tapping "Collection" from the main menu should first show the hero roster, then drop into that hero's spell loadout. This also makes it natural to filter the spell pool to that hero's two elements. Players coming from Clash Royale or Super Spell Heroes will not be confused — it matches expectation.</p>
+<h3>Spell cards need two distinct badge types: tier/level badge + element background; rarity is the border</h3>
+<p>SpellBattle's four rarity tiers (Basic / Rare / Epic / Legendary, unlocking at match levels 1–4) map directly onto the industry's four-tier rarity system. Use the <strong>border or background color for rarity</strong>, a <strong>separate element color tint</strong> for the card face, and a small <strong>tier label</strong> ("L1" through "L4" or the rarity name) in one corner. Spell name and art fill the center. Description goes in a tap-to-expand detail panel only.</p>
+<h3>Deck builder: typed slot rows per tier, one row per rarity</h3>
+<p>Show four rows at the top — one per tier (Basic, Rare, Epic, Legendary) — each holding the max number of that rarity's spells. Filled slots show the card thumbnail; empty slots show a placeholder with the tier label. When a row is full, cards of that tier are dimmed in the collection below. This makes the "only one Legendary" constraint visually self-evident.</p>
+<h3>Main menu: 3 tabs only, battle button dominant</h3>
+<p>Right now SpellBattle needs: <strong>Play</strong> (queue match), <strong>Collection</strong> (hero roster → per-hero deck), <strong>Shop</strong> (deferred). The Play button should be the largest centered element. Design the Collection tab now to support the hero-first flow rather than retrofitting it later when hero selection comes.</p>
+<h3>Match screen: your board fills the bottom 60%, opponent minimap top-left, HP flanking the top</h3>
+<p>Super Spell Heroes validated this layout and players praised it. SpellBattle already has independent boards as a design constraint. The binary shield state (full block vs. broken with overflow) needs a distinct visual state — a shield icon fully opaque (active) or shattered/absent (broken). Do not show partial shield progress; the binary nature is load-bearing and should be reinforced visually.</p>
+<hr>
+<h2>Uncertainty Notes</h2>
+<ul><li>Super Spell Heroes' exact pixel layouts are not documented in any text source. The match UI description is reconstructed from gameplay tips, review quotes, and designer portfolio metadata. Accurate at the level of "which elements exist and where" but not pixel-precise.</li><li>Clash Royale deck builder description is sourced from third-party tool documentation and UX analyses, consistent across all sources.</li><li>Super Spell Heroes' live matchmaking status as of mid-2026 is unclear. APK still downloadable; active matchmaking unconfirmed.</li><li>All revenue and download figures are third-party estimates (Sensor Tower, AppFollow, Business of Apps), not official disclosures.</li></ul>
+<hr>
+<h2>Sources</h2>
+<ul><li><a href="https://www.behance.net/gallery/202378901/Super-Spell-Heroes-UI-System-Concept" target="_blank" rel="noopener">Super Spell Heroes UI System &amp; Concept — Robert Malicki (Behance)</a></li><li><a href="https://www.pocketgamer.com/articles/078514/super-spell-heroes-review/" target="_blank" rel="noopener">Super Spell Heroes Review — Pocket Gamer</a></li><li><a href="https://www.pocketgamer.com/super-spell-heroes/super-spell-heroes-cheats-and-tips-essential-tips-to-win-multiplayer-battle/" target="_blank" rel="noopener">Super Spell Heroes Cheats and Tips — Pocket Gamer</a></li><li><a href="https://www.pocketgamer.com/super-spell-heroes/app-army-assemble-super-spell-heroes-a-unique-take-on-match-three/" target="_blank" rel="noopener">Super Spell Heroes App Army Assemble — Pocket Gamer</a></li><li><a href="https://www.gamedeveloper.com/game-platforms/-i-super-spell-heroes-i-dev-sviper-raises-2-8-million" target="_blank" rel="noopener">Super Spell Heroes dev Sviper raises $2.8M — Game Developer</a></li><li><a href="https://www.blog.udonis.co/mobile-marketing/mobile-games/clash-royale-player-count" target="_blank" rel="noopener">Clash Royale Player Count, Revenue &amp; Stats 2026 — Udonis</a></li><li><a href="https://www.businessofapps.com/data/clash-royale-statistics/" target="_blank" rel="noopener">Clash Royale Revenue and Usage Statistics — Business of Apps</a></li><li><a href="https://www.gornicki.me/blog/90l/ux-in-clash-royale-part-1" target="_blank" rel="noopener">UX in Clash Royale — Maciej Gornicki</a></li><li><a href="https://karimmuhtar.com/ux-design/clash-royale/" target="_blank" rel="noopener">Clash Royale UX Case Study — Karim Muhtar</a></li><li><a href="https://www.therookies.co/blog/education/game-design-ux-best-practices-detailed-breakdown-of-clash-royale" target="_blank" rel="noopener">Game Design UX Best Practices: Clash Royale — The Rookies</a></li><li><a href="https://clashroyale.fandom.com/wiki/Clash_Royale_Wiki:Deck_Builder_Documentation" target="_blank" rel="noopener">Clash Royale Deck Builder Documentation — Fandom</a></li><li><a href="https://www.gamersexperience.com/how-hearthstone-perfects-the-digital-card-collecting-and-deck-building-experience/" target="_blank" rel="noopener">Hearthstone Collection Manager — GamersExperience</a></li><li><a href="https://support.ironhidegames.com/support/solutions/articles/4000223653-how-to-create-a-deck-in-kingdom-rush-battles-heroes-spells-towers-guide" target="_blank" rel="noopener">Kingdom Rush Battles Deck Guide — Ironhide Games Support</a></li><li><a href="https://medium.com/@acbassettone/5-ux-ui-lessons-from-designing-a-card-game-b689d3f3187" target="_blank" rel="noopener">5 UX/UI Lessons from Designing a Card Game — Medium</a></li><li><a href="https://www.hicreategames.com/card-rarity-systems-how-to-implement-them-in-your-tcg/" target="_blank" rel="noopener">Card Rarity Systems in TCGs — Hicreate Games</a></li></ul></article><article class="doc" id="example-super-spell-heroes-teardown"><h2>Super Spell Heroes — monetization &amp; retention teardown</h2><p class="doc-meta">09 Jun 2026 · <a href="../docs/research/EXAMPLE-super-spell-heroes-teardown.md" target="_blank" rel="noopener">source file</a></p><blockquote>Example writeup — delete or overwrite once you run your own <code>/research</code>.</blockquote>
+<h2>Core loop</h2>
+<p>Players draw paths across an elemental board to chain spells. Sessions are <strong>short</strong> (2–4 min) and built around <em>one more match</em> tension. Key hooks:</p>
+<ul><li>Daily chest timers that reward returning</li><li>Hero mastery progression per element</li><li>A ladder with weekly reset</li></ul>
+<h2>Monetization snapshot</h2>
+<table class="md-table"><thead><tr><th>Lever</th><th>Model</th><th>Notes</th></tr></thead><tbody><tr><td>Heroes</td><td>Soft + hard currency</td><td>Gated behind ladder tiers</td></tr><tr><td>Chests</td><td>Timed / paid skip</td><td>Classic CR-style funnel</td></tr><tr><td>Battle pass</td><td>Seasonal</td><td>Cosmetic + currency track</td></tr></tbody></table>
+<h2>Implications for SpellBattle</h2>
+<ol><li>Your <strong>level cap of 4</strong> keeps matches tight — lean into that as a differentiator.</li><li>A <code>spell-as-fuel</code> system rewards deck cohesion; surface that in onboarding.</li><li>Avoid pay-to-win on heroes — sell identity, not power, to fit "heroes define identity".</li></ol></article>
+<footer><span>Generated Wed 01 Jul · 22:14 · auto-refreshes every 20s</span><span>Regenerates after each agent turn</span></footer>
+</body></html>
