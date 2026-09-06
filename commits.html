@@ -190,6 +190,8 @@
   .badge-fire{background:rgba(255,122,60,.18);color:var(--fire);}
   .badge-nature{background:rgba(87,227,154,.15);color:var(--nature);}
   .badge-light{background:rgba(255,194,75,.15);color:var(--amber);}
+  .badge-earth{background:rgba(180,140,90,.20);color:#c9a06a;}
+  .badge-water{background:rgba(80,160,255,.18);color:#7ec4ff;}
   .badge-basic{background:var(--panel-2);color:var(--muted);border:1px solid var(--line);}
   .badge-rare{background:rgba(138,124,255,.15);color:var(--arcane);}
   .badge-epic{background:rgba(140,80,255,.18);color:#c4b5fd;}
@@ -197,6 +199,7 @@
   .badge-offense{background:rgba(255,93,115,.12);color:var(--danger);}
   .badge-defense{background:rgba(87,227,154,.12);color:var(--nature);}
   .badge-support{background:rgba(138,124,255,.12);color:var(--arcane);}
+  .badge-breakpower{background:rgba(255,93,115,.18);color:var(--danger);border:1px solid rgba(255,93,115,.35);}
   .badge-unlocked{background:rgba(87,227,154,.12);color:var(--nature);}
   .spell-section-head{font-family:var(--display);font-size:.82rem;letter-spacing:.18em;text-transform:uppercase;
     color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin:22px 0 10px;}
@@ -260,16 +263,26 @@
   .ssh-assets-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
   .ssh-asset-tag{font-family:var(--mono);font-size:.64rem;padding:3px 8px;border-radius:6px;
     background:var(--panel-2);border:1px solid var(--line);color:var(--muted);}
+  .ssh-hero-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:14px 16px;margin-bottom:14px;}
+  .ssh-hero-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .ssh-hero-name{font-family:var(--display);font-weight:600;font-size:1rem;}
+  .ssh-hero-grid{width:100%;border-collapse:collapse;font-size:.8rem;}
+  .ssh-hero-grid th{font-family:var(--display);font-size:.68rem;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--muted);text-align:left;padding:4px 8px;
+    border-bottom:1px solid var(--line);}
+  .ssh-hero-grid td{padding:3px 8px;vertical-align:top;color:var(--ink);}
+  .ssh-empty-cell{color:var(--faint);}
 </style></head><body>
 <header class="hud">
   <div><span class="eyebrow">Real-time 1v1 spell battler · Unity 6</span>
     <span class="mark"><span class="sig">◈</span> SPELLBATTLE</span></div>
   <div><span class="eyebrow">Current phase</span><span class="phase">Foundations complete</span></div>
-  <div class="hud-right"><span class="chip">⌥ master</span><span class="chip chip-warn">184 uncommitted</span>
+  <div class="hud-right"><span class="chip">⌥ master</span><span class="chip chip-warn">115 uncommitted</span>
     <span class="sigil zero">✓ all clear</span></div>
 </header>
-<nav class="topnav"><a class="nav-link" href="index.html">Overview</a><a class="nav-link" href="roadmap.html">Roadmap</a><a class="nav-link" href="inbox.html">Inbox</a><a class="nav-link" href="research.html">Research</a><a class="nav-link" href="activity.html">Activity</a><a class="nav-link" href="system.html">System</a><a class="nav-link active" href="commits.html">Commits</a><a class="nav-link" href="design.html">Design</a><a class="nav-link" href="spells.html">Spells</a><a class="nav-link" href="ssh.html">SSH Import</a><a class="nav-link" href="balance.html">Balance</a></nav>
+<nav class="topnav"><a class="nav-link" href="index.html">Overview</a><a class="nav-link" href="roadmap.html">Roadmap</a><a class="nav-link" href="inbox.html">Inbox</a><a class="nav-link" href="research.html">Research</a><a class="nav-link" href="activity.html">Activity</a><a class="nav-link" href="system.html">System</a><a class="nav-link active" href="commits.html">Commits</a><a class="nav-link" href="design.html">Design</a><a class="nav-link" href="spells.html">Spells</a><a class="nav-link" href="ssh.html">SSH Reference</a><a class="nav-link" href="balance.html">Balance</a></nav>
 <a class="back" href="index.html">← Back to overview</a>
-<h1 class="page-title">Commits · master</h1><section class="panel"><ul class="commits"><li><code>8302194</code><span>Phase D: shield-break channel mechanic + spell database; Phase C remainder</span><em>3 weeks ago</em></li><li><code>ad3daed</code><span>Phase C: meta-progression backend + deck builder UI</span><em>3 weeks ago</em></li><li><code>a7b2c1c</code><span>Initial commit: SpellBattle core + agent workflow</span><em>3 weeks ago</em></li></ul></section>
-<footer><span>Generated Wed 01 Jul · 22:14 · auto-refreshes every 20s</span><span>Regenerates after each agent turn</span></footer>
+<h1 class="page-title">Commits · master</h1><section class="panel"><ul class="commits"><li><code>022ea70</code><span>Rebuild Fire/Nature spells from Matous&#x27;s verified SSH spreadsheet</span><em>2 days ago</em></li><li><code>8302194</code><span>Phase D: shield-break channel mechanic + spell database; Phase C remainder</span><em>3 months ago</em></li><li><code>ad3daed</code><span>Phase C: meta-progression backend + deck builder UI</span><em>3 months ago</em></li><li><code>a7b2c1c</code><span>Initial commit: SpellBattle core + agent workflow</span><em>3 months ago</em></li></ul></section>
+<footer><span>Generated Mon 07 Sep · 00:10 · auto-refreshes every 20s</span><span>Regenerates after each agent turn</span></footer>
 </body></html>
